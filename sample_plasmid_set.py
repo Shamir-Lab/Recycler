@@ -36,11 +36,12 @@ def readfq(fp): # this is a generator function
 ########################################################
 # Entry point
 
-plasmids_file = 'NCBI_plasmids.fasta'
+plasmids_file = '/home/nasheran/rozovr/recycle_paper_data/NCBI_plasmids.fasta'
 samp_file = 'samp_plasmids_out.fasta'
 max_len = 20000
 samp_size = 800
 res = {}
+print plasmids_file
 fp = open(plasmids_file, 'r')
 for name,seq,qual in readfq(fp):
 	if len(seq)<max_len:
