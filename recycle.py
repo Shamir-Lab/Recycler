@@ -1,7 +1,7 @@
 import re, argparse, os
 import networkx as nx
 import numpy as np
-from pulp import *
+# from pulp import *
 complements = {'A':'T', 'C':'G', 'G':'C', 'T':'A'}
 
 
@@ -243,21 +243,21 @@ def get_fasta_stranded_seq(seqs, seq_name):
     else: 
         return rc_seq(seqs[seq_name[:-1]])
 
-def get_seq_from_path(path, seqs):
+def get_seq_from_path(path, seqs, max_k_val=55):
     seq = get_fasta_stranded_seq(seqs, path[0])
     if len(path)!=1:
         for p in path[1:]:
-            seq += get_fasta_stranded_seq(seqs, p)[55:]
+            seq += get_fasta_stranded_seq(seqs, p)[max_k_val:]
     return seq
 
 def parse_user_input():
-    parser = argparse.ArgumentParser(description='gets cycles from plasmid metagenome connected components')
-    parser.add_argument('-i','--input', help='Input (SPAdes 3.50+) FASTG to process',
+    parser = argparse.ArgumentParser(description='recycle extracts cycles likely to be plasmids from metagenome and genome assembly graphs')
+    parser.add_argument('-i','--input.fastg', help='Input (SPAdes 3.50+) FASTG to process',
      required=True, type=str)
     parser.add_argument('-c',
-        '--comp', help='Input graph component FASTA to process [can be whole graph -- not recommended]',
+        '--comp.fasta', help='Input graph component FASTA to process [can be whole graph -- not recommended]',
          required=True, type=str)
-    parser.add_argument('-l', '--min_length', help='min_length plasmid required [default: 1000]',
+    parser.add_argument('-l', '--length', help='minimum length required for reporting [default: 1000]',
      required=False, type=int, default=1000)
     parser.add_argument('-m', '--max_CV',
      help='coefficient of variation used for pre-selection [default: 0.50, higher--> less restrictive]; Note: not a requisite for selection',
@@ -332,13 +332,9 @@ for nd in comp.nodes_with_selfloops(): #nodes_with_selfloops()
 for nd in to_remove:
     comp.remove_node(nd)
    
-# print final_paths
 
 paths = enum_high_mass_shortest_paths(comp)
-# print "==================paths, initially: =================="
-# for p in paths:
-#     print p 
-#     print ""
+
 
 print "================== path, coverage levels when added ===================="
 
@@ -357,8 +353,6 @@ while(curr_paths != last_paths):
         continue
     if get_path_coverage_CV(paths[0]) <= max_CV:
         updated_covs = [get_cov_from_SPAdes_name(a) for a in paths[0]]
-        # print get_path_coverage_CV(paths[0]), paths[0]
-        # print updated_covs, "\n"
         curr_paths.append(paths[0])
         covs_before_update = [get_cov_from_SPAdes_name(p) for p in paths[0]]
 
@@ -369,12 +363,6 @@ while(curr_paths != last_paths):
             print paths[0]
             print covs_before_update, "\n"
         paths = enum_high_mass_shortest_paths(comp)
-        # print "==================paths, after update: =================="
-        # for p in paths:
-        #     updated_covs = [get_cov_from_SPAdes_name(a) for a in p]
-        #     print p
-        #     print get_path_coverage_CV(p), updated_covs, "\n"
-
 
 print "==================final_paths identities after updates: ================"
 for p in final_paths:
