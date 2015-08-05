@@ -57,9 +57,7 @@ max_len = 20000
 samp_size = 900
 res = {}
 res = get_good_plasmids_dict_from_file(aya_plasmids_file, min_len, max_len, res)
-print len(res)
 res = get_good_plasmids_dict_from_file(ncbi_plasmids_file, min_len, max_len, res)
-print len(res)
 # fp = open(plasmids_file, 'r')
 # for name,seq,qual in readfq(fp):
 # 	if min_len <= len(seq) <=max_len and \
