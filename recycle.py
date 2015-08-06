@@ -1,7 +1,6 @@
 import re, argparse, os
 import networkx as nx
 import numpy as np
-# from pulp import *
 complements = {'A':'T', 'C':'G', 'G':'C', 'T':'A'}
 
 
@@ -230,8 +229,10 @@ def clean_end_nodes_iteratively(G):
 
 def remove_path_nodes_from_graph(path,G):
     for nd in path:
-        G.remove_node(nd)
-        G.remove_node(rc_node(nd))
+        if nd in G:
+            G.remove_node(nd)
+        if rc_node(nd) in G:
+            G.remove_node(rc_node(nd))
 
 def get_fasta_stranded_seq(seqs, seq_name):
     """ gets sequence corresponding 

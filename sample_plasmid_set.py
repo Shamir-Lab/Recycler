@@ -51,29 +51,17 @@ def get_good_plasmids_dict_from_file(pfile, min_len, max_len, res=None):
 data_dir = '/home/nasheran/rozovr/recycle_paper_data/'
 aya_plasmids_file = data_dir + 'Aya_plasmid_scaffolds_PNAS.fa'
 ncbi_plasmids_file = data_dir + 'NCBI_plasmids.fasta'
-samp_file = 'samp_plasmids_out.fasta'
+
 min_len = 1000
 max_len = 20000
-samp_size = 900
 res = {}
 res = get_good_plasmids_dict_from_file(aya_plasmids_file, min_len, max_len, res)
 res = get_good_plasmids_dict_from_file(ncbi_plasmids_file, min_len, max_len, res)
-# fp = open(plasmids_file, 'r')
-# for name,seq,qual in readfq(fp):
-# 	if min_len <= len(seq) <=max_len and \
-#     not 'N' in seq:
-# 		res[name] = seq
 
-# fp = open(aya_plasmids_file, 'r')
-# for name,seq,qual in readfq(fp):
-#     if min_len <= len(seq) <=max_len and \
-#     not 'N' in seq:
-#         res[name] = seq
-
-
-# fo = open(samp_file, 'w')
-sample_inds = random.sample(xrange(len(res)), samp_size)
-keys = res.keys()
-for ind in sample_inds:
-	print ">"+keys[ind]+"\n"+res[keys[ind]]
-	# fo.write(">"+keys[ind]+"\n"+res[keys[ind]]+"\n")
+for size in [100,200,400,800,1600]:
+    samp_file = data_dir + 'plasmids_sim_ref_'+str(size)+'.fasta'
+    fo = open(samp_file, 'w')
+    sample_inds = random.sample(xrange(len(res)), size)
+    keys = res.keys()
+    for ind in sample_inds:
+    	fo.write(">"+keys[ind]+"\n"+res[keys[ind]]+"\n")
