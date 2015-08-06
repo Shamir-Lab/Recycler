@@ -23,10 +23,10 @@ for size in [100,200,400,800,1600]:
 	zip_cmmd = 'gzip '+ pref+'_reads.*'
 	# print zip_cmmd
 
-	spades_cmmd = '$eran/SPAdes-3.5.0-Linux/bin/spades.py -1 '\
-	+pref+'_reads.1.fasta.gz -2 '+\
-	pref+'_reads.2.fasta.gz --only-assembler -k 21,33,55 -o '+\
-	data_dir+'ref_'+str(size)+'/'
+	# spades_cmmd = '$eran/SPAdes-3.5.0-Linux/bin/spades.py -1 '\
+	# +pref+'_reads.1.fasta.gz -2 '+\
+	# pref+'_reads.2.fasta.gz --only-assembler -k 21,33,55 -o '+\
+	# data_dir+'ref_'+str(size)+'/'
 	# print spades_cmmd
 
 	####### run commands in succession
@@ -39,6 +39,4 @@ for size in [100,200,400,800,1600]:
 	p = subprocess.Popen(zip_cmmd,
 	shell=True, stdout=subprocess.PIPE)
 	p.wait()
-	# p = subprocess.Popen(spades_cmmd,
-	# shell=True, stdout=subprocess.PIPE)
-	# p.wait()
+	
