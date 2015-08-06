@@ -253,10 +253,10 @@ def get_seq_from_path(path, seqs, max_k_val=55):
 
 def parse_user_input():
     parser = argparse.ArgumentParser(description='recycle extracts cycles likely to be plasmids from metagenome and genome assembly graphs')
-    parser.add_argument('-i','--input.fastg', help='Input (SPAdes 3.50+) FASTG to process',
+    parser.add_argument('-g','--graph', help='(SPAdes 3.50+) FASTG file to process [recommended: before_rr.fastg]',
      required=True, type=str)
-    parser.add_argument('-c',
-        '--comp.fasta', help='Input graph component FASTA to process [can be whole graph -- not recommended]',
+    parser.add_argument('-s',
+        '--sequences', help='FASTA file (contigs of interest in the graph) to process',
          required=True, type=str)
     parser.add_argument('-l', '--length', help='minimum length required for reporting [default: 1000]',
      required=False, type=int, default=1000)
@@ -278,8 +278,8 @@ def parse_user_input():
 # create edge between start/end, edges out of end using forward 
 # strand, edges into start using r.c. strand
 args = parse_user_input()
-fastg_name = args.input
-comp_name = args.comp
+fastg_name = args.graph
+comp_name = args.sequences
 max_CV = args.max_CV
 min_length = args.min_length
 fp = open(fastg_name, 'r')
