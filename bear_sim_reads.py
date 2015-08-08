@@ -13,7 +13,7 @@ for size in [100,200,400,800,1600]:
 	####### generate command strings
 	abnd_cmmd = 'parametric_abundance.pl ' + pref \
 	+'.fasta low > '+pref+'.abnd'
-	print abnd_cmmd 
+	# print abnd_cmmd 
 
 	gen_reads_cmmd = 'python generate_reads.py -r ' \
 	+pref+'.fasta -a '+pref+'.abnd -o ' +pref+\
@@ -30,9 +30,9 @@ for size in [100,200,400,800,1600]:
 	# print spades_cmmd
 
 	####### run commands in succession
-	p = subprocess.Popen(abnd_cmmd,
-	shell=True, stdout=subprocess.PIPE)
-	p.wait()
+	# p = subprocess.Popen(abnd_cmmd,
+	# shell=True, stdout=subprocess.PIPE)
+	# p.wait()
 	p = subprocess.Popen(gen_reads_cmmd,
 	shell=True, stdout=subprocess.PIPE)
 	p.wait()

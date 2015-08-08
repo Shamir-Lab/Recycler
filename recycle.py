@@ -64,10 +64,6 @@ def get_SPAdes_base_mass(G, name):
 def get_total_path_length(path):
     return sum([get_length_from_SPAdes_name(n) for n in path])
 
-def get_path_coverage_median(path):
-    covs = np.array([get_cov_from_SPAdes_name(n) for n in path])
-    
-    return np.median(covs)
 
 def get_path_coverage_CV(path):
     covs = np.array([get_cov_from_SPAdes_name(n) for n in path])
@@ -88,10 +84,6 @@ def get_adj_lines(fastg):
         lines.append(name)
     return lines
 
-def sort_func(a):
-    return a[1]
-
-
 def rc_node(node):
     """ gets reverse complement
         spades node label
@@ -99,14 +91,6 @@ def rc_node(node):
     if node[-1] == "'": return node[:-1]
     else: return node + "'"
 
-def get_heaviest_node(nodes, covered_nodes):
-    """ given node list sorted by base mass,
-        finds first uncovered node
-    """
-    ind = 0
-    while(nodes[ind] in covered_nodes):
-        ind+=1
-    return nodes[ind]
 
 def enum_high_mass_shortest_paths(G):
     """ given component subgraph, returns list of paths that
@@ -156,15 +140,6 @@ def enum_high_mass_shortest_paths(G):
                 # print path
     return paths
 
-def get_path_coverage_bound(path,direction):
-    cov = get_cov_from_SPAdes_name(path[0])
-    for j in path:
-        val = get_cov_from_SPAdes_name(j)
-        if direction == 'min' and val < cov:
-            cov = val
-        elif direction == 'max' and val > cov:
-            cov = val
-    return cov
 
 def get_total_path_mass(path):
     return sum([get_length_from_SPAdes_name(p) * \
