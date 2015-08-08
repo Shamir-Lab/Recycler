@@ -99,7 +99,7 @@ def enum_high_mass_shortest_paths(G, nodes=None):
         shortest path (by 1/(length * coverage)) to each of 
         its predecessors, and returning to n
     """
-    if nodes=None:
+    if nodes==None:
         nodes = []
         nodes[:] = G.nodes()
     unq_sorted_paths = set([])
@@ -307,16 +307,6 @@ for nd in to_remove:
    
 # initialize shortest path set considered
 paths = enum_high_mass_shortest_paths(comp)
-
-# create map from each node to all the paths
-# it belongs to
-node_paths_dict = {}
-for p in paths:
-    for node in p:
-        if node in node_paths_dict:
-            node_paths_dict.append(p)
-        else:
-            node_paths_dict[node]=[p]
 
 print "================== path, coverage levels when added ===================="
 curr_paths = paths
