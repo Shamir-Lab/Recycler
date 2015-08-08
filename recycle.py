@@ -92,52 +92,51 @@ def rc_node(node):
     else: return node + "'"
 
 
-def enum_high_mass_shortest_paths(G):
+def enum_high_mass_shortest_paths(G, nodes=None):
     """ given component subgraph, returns list of paths that
         - is non-redundant (includes) no repeats of same cycle
         - includes all cycles starting at node n, taking 
         shortest path (by 1/(length * coverage)) to each of 
         its predecessors, and returning to n
     """
-    nodes = []
-    nodes[:] = G.nodes()
+    if nodes=None:
+        nodes = []
+        nodes[:] = G.nodes()
     unq_sorted_paths = set([])
     paths = []
-    # nodes.sort(key=get_SPAdes_base_mass, reverse=True)
-    # assign weight edge weights to be 1/mass of starting node
-    # making sure node covered whenever rc of node is lets us avoid
-    # issue of rc of node having different weight than node
+    # use add_edge to assign edge weights to be 1/mass of starting node
     for e in G.edges():
         G.add_edge(e[0], e[1], cost = 1./get_SPAdes_base_mass(G, e[0]))
-        # print e, G[e[0]][e[1]]['cost']
 
     for node in nodes:
         if node[-1] == "'": continue
         for pred in G.predecessors(node):
-            # print pred, get_SPAdes_base_mass(G, pred)
+            # needed because some nodes removed on updates
             if pred not in G: continue
-            # pred_paths =  [p for p in nx.shortest_path(G, source=highest,
-                # target=pred, weight='cost')]
-            # for path in pred_paths: # in this case there should only be one path
+
             try:
                 path = nx.shortest_path(G, source=node,
                     target=pred, weight='cost')
             except nx.exception.NetworkXNoPath:
                 continue
 
+            # making sure node covered whenever rc of node is lets us avoid
+            # issue of rc of node having different weight than node
+            # below - create copy of path with each node as rc version
+            # use as unique representation of a path and rc of its whole
             all_rc_path = []
             for p in path:
                 if p[-1] != "'": p = p+"'"
                 all_rc_path.append(p)
 
+            # here we avoid considering cyclic rotations of identical paths
+            # by sorting their string representations (all_rc_path above) 
+            # and comparing against the set already stored
             srt = "".join(sorted(all_rc_path))
             if srt not in unq_sorted_paths:
                 unq_sorted_paths.add(srt)
                 paths.append(tuple(path))
-                # for node in path:
-                #     covered_nodes.add(node)
-                #     covered_nodes.add(rc_node(node))
-                # print path
+                
     return paths
 
 
@@ -249,9 +248,7 @@ def parse_user_input():
 # outputs: fasta of cycles found by joining component edges
 
 ###################################
-# 1. read in fastg, create start and end node for each edge
-# create edge between start/end, edges out of end using forward 
-# strand, edges into start using r.c. strand
+# 1. read in fastg, load graph, create output handle
 args = parse_user_input()
 fastg_name = args.graph
 comp_name = args.sequences
@@ -267,8 +264,8 @@ f_cycs_out = open(cycs_ofile, 'w')
 
 
 ###################################
-# 2. get subgraph defined by component
-# in fasta, remove sources & sinks (can't be in cycle)
+# 2. get subgraph defined by component fasta
+# remove sources & sinks (can't be in cycle)
 fp = open(comp_name, 'r')
 comp_nodes = []
 seqs = {}
@@ -306,20 +303,34 @@ for nd in comp.nodes_with_selfloops(): #nodes_with_selfloops()
     to_remove |= set([nd,rc_node(nd)])
 
 for nd in to_remove:
-    comp.remove_node(nd)
+    if nd in comp: comp.remove_node(nd)
    
-
+# initialize shortest path set considered
 paths = enum_high_mass_shortest_paths(comp)
 
+# create map from each node to all the paths
+# it belongs to
+node_paths_dict = {}
+for p in paths:
+    for node in p:
+        if node in node_paths_dict:
+            node_paths_dict.append(p)
+        else:
+            node_paths_dict[node]=[p]
 
 print "================== path, coverage levels when added ===================="
-
 curr_paths = paths
 last_paths = []
+
+# peeling - iterate until no change in path set from 
+# one iteration to next
 while(curr_paths != last_paths):
     last_paths[:] = curr_paths
     curr_paths = []
     if(len(paths)==0): break
+
+    # using initial set of paths or set from last iteration
+    # sort the paths by CV and test the lowest CV path for removal 
     paths.sort(key=get_path_coverage_CV, reverse=False) # low to high
     if get_total_path_mass(paths[0])<1:
         remove_path_nodes_from_graph(paths[0],comp)
@@ -340,6 +351,7 @@ while(curr_paths != last_paths):
             print covs_before_update, "\n"
         paths = enum_high_mass_shortest_paths(comp)
 
+# done peeling
 print "==================final_paths identities after updates: ================"
 for p in final_paths:
     print p
