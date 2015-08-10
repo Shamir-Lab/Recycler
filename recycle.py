@@ -225,9 +225,11 @@ def get_seq_from_path(path, seqs, max_k_val=55):
             seq += get_fasta_stranded_seq(seqs, p)[max_k_val:]
     return seq
 
-def get_spades_type_name(count, path):
+def get_spades_type_name(count, path, cov=None):
+    if cov==None:
+        cov = get_total_path_mass(path)/get_total_path_length(path)
     info = ["RNODE", str(count+1), "length", str(get_total_path_length(path)),
-     "cov", '%.5f' % (get_total_path_mass(path)/get_total_path_length(path))]
+     "cov", '%.5f' % (cov)]
     return "_".join(info)
 
 def parse_user_input():
@@ -346,11 +348,12 @@ while(curr_paths != last_paths):
         updated_covs = [get_cov_from_SPAdes_name(a) for a in paths[0]]
         curr_paths.append(paths[0])
         covs_before_update = [get_cov_from_SPAdes_name(p) for p in paths[0]]
-
+        cov_val_before_update = get_total_path_mass(paths[0])/get_total_path_length(paths[0])
         update_node_coverage_vals(paths[0], comp)
         # clean_end_nodes_iteratively(comp)
         if get_total_path_length(paths[0])>=min_length:
-            name = get_spades_type_name(path_count,paths[0])
+
+            name = get_spades_type_name(path_count,paths[0],cov_val_before_update)
             path_count += 1
             final_paths_dict[name] = paths[0]
             print paths[0]
