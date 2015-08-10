@@ -225,6 +225,11 @@ def get_seq_from_path(path, seqs, max_k_val=55):
             seq += get_fasta_stranded_seq(seqs, p)[max_k_val:]
     return seq
 
+def get_spades_type_name(count, path):
+    info = ["RNODE", str(count+1), "length", str(get_total_path_length(path)),
+     "cov", '%.5f' % (get_total_path_mass(path)/get_total_path_length(path))]
+    return "_".join(info)
+
 def parse_user_input():
     parser = argparse.ArgumentParser(description='recycle extracts cycles likely to be plasmids from metagenome and genome assembly graphs')
     parser.add_argument('-g','--graph', help='(SPAdes 3.50+) FASTG file to process [recommended: before_rr.fastg]',
@@ -305,10 +310,7 @@ path_count = 0
 for nd in comp.nodes_with_selfloops(): #nodes_with_selfloops()
     if get_length_from_SPAdes_name(nd) >= min_length:
         if (rc_node(nd),) not in self_loops:
-
-            info = ["RNODE", str(path_count+1), "length", str(len(seq)),
-             "cov", '%.5f' % (get_total_path_mass((nd,))/get_total_path_length((nd,)))]
-            name = "_".join(info)
+            name = get_spades_type_name(path_count, (nd,))
             self_loops.add((nd,))
             final_paths_dict[name] = (nd,)
             path_count += 1
@@ -348,9 +350,7 @@ while(curr_paths != last_paths):
         update_node_coverage_vals(paths[0], comp)
         # clean_end_nodes_iteratively(comp)
         if get_total_path_length(paths[0])>=min_length:
-            info = ["RNODE", str(path_count+1), "length", str(len(seq)),
-             "cov", '%.5f' % (get_total_path_mass(paths[0])/get_total_path_length(paths[0]))]
-            name = "_".join(info)
+            name = get_spades_type_name(path_count,paths[0])
             path_count += 1
             final_paths_dict[name] = paths[0]
             print paths[0]
@@ -359,12 +359,13 @@ while(curr_paths != last_paths):
         paths = enum_high_mass_shortest_paths(comp)
 
 # done peeling
+# print final paths to screen
 print "==================final_paths identities after updates: ================"
 for p in final_paths_dict.keys():
     print final_paths_dict[p]
     print ""
 
-
+# write out sequences to fasta
 for p in final_paths_dict.keys():
     seq = get_seq_from_path(final_paths_dict[p], seqs)
     f_cycs_fasta.write(">" + p + "\n" + seq + "\n")    
