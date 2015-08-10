@@ -92,16 +92,17 @@ def rc_node(node):
     else: return node + "'"
 
 
-def enum_high_mass_shortest_paths(G, nodes=None):
+def enum_high_mass_shortest_paths(G):
     """ given component subgraph, returns list of paths that
         - is non-redundant (includes) no repeats of same cycle
         - includes all cycles starting at node n, taking 
         shortest path (by 1/(length * coverage)) to each of 
         its predecessors, and returning to n
     """
-    if nodes==None:
-        nodes = []
-        nodes[:] = G.nodes()
+    # if nodes==None:
+    nodes = []
+    nodes[:] = G.nodes()
+
     unq_sorted_paths = set([])
     paths = []
     # use add_edge to assign edge weights to be 1/mass of starting node
@@ -258,7 +259,7 @@ def parse_user_input():
 # 1. read in fastg, load graph, create output handle
 args = parse_user_input()
 fastg_name = args.graph
-comp_name = args.sequences
+seqs_name = args.sequences
 max_CV = args.max_CV
 min_length = args.length
 fp = open(fastg_name, 'r')
@@ -277,22 +278,22 @@ f_cyc_paths = open(cycs_ofile, 'w')
 ###################################
 # 2. get subgraph defined by component fasta
 # remove sources & sinks (can't be in cycle)
-fp = open(comp_name, 'r')
-comp_nodes = []
+fp = open(seqs_name, 'r')
+seq_nodes = []
 seqs = {}
 for name,seq,qual in readfq(fp):
     # avoid sources & sinks
     # TODO: get rid of higher order sources/sinks - e.g., 
     # sinks caused by removal of sinks, ...
     if G.out_degree(name)!=0 and G.in_degree(name)!=0:
-        comp_nodes.extend([name, name+"'"])
+        seq_nodes.extend([name, name+"'"])
         seqs[name] = seq
 
-if (not (len(comp_nodes)>0 and len(comp_nodes)%2==0)):
+if (not (len(seq_nodes)>0 and len(seq_nodes)%2==0)):
     print "graph cleaning implied no cycles possible"
     quit()
 
-comp = G.subgraph(comp_nodes)
+G = G.subgraph(seq_nodes)
 
 
 ###################################
@@ -309,7 +310,7 @@ to_remove = set([])
 # remove single node cycles, store if long enough
 
 path_count = 0
-for nd in comp.nodes_with_selfloops(): #nodes_with_selfloops()
+for nd in G.nodes_with_selfloops(): #nodes_with_selfloops()
     if get_length_from_SPAdes_name(nd) >= min_length:
         if (rc_node(nd),) not in self_loops:
             name = get_spades_type_name(path_count, (nd,))
@@ -319,47 +320,52 @@ for nd in comp.nodes_with_selfloops(): #nodes_with_selfloops()
     to_remove |= set([nd,rc_node(nd)])
 
 for nd in to_remove:
-    if nd in comp: comp.remove_node(nd)
-   
-# initialize shortest path set considered
-paths = enum_high_mass_shortest_paths(comp)
+    if nd in G: G.remove_node(nd)
 
 print "================== path, coverage levels when added ===================="
-curr_paths = paths
-last_paths = []
+for comp in list(nx.strongly_connected_component_subgraphs(G)):
+ 
+    # initialize shortest path set considered
+    paths = enum_high_mass_shortest_paths(comp)
 
-# peeling - iterate until no change in path set from 
-# one iteration to next
-while(curr_paths != last_paths):
-    last_paths[:] = curr_paths
-    curr_paths = []
-    if(len(paths)==0): break
+    curr_paths = paths
+    last_paths = []
 
-    # using initial set of paths or set from last iteration
-    # sort the paths by CV and test the lowest CV path for removal 
-    paths.sort(key=get_path_coverage_CV, reverse=False) # low to high
-    if get_total_path_mass(paths[0])<1:
-        remove_path_nodes_from_graph(paths[0],comp)
-        paths.pop()
-        curr_paths=paths
-        paths = enum_high_mass_shortest_paths(comp)
-        continue
-    if get_path_coverage_CV(paths[0]) <= max_CV:
-        updated_covs = [get_cov_from_SPAdes_name(a) for a in paths[0]]
-        curr_paths.append(paths[0])
-        covs_before_update = [get_cov_from_SPAdes_name(p) for p in paths[0]]
-        cov_val_before_update = get_total_path_mass(paths[0])/get_total_path_length(paths[0])
-        update_node_coverage_vals(paths[0], comp)
-        # clean_end_nodes_iteratively(comp)
-        if get_total_path_length(paths[0])>=min_length:
+    # peeling - iterate until no change in path set from 
+    # one iteration to next
+    while(curr_paths != last_paths):
+        last_paths[:] = curr_paths
+        curr_paths = []
+        if(len(paths)==0): break
 
-            name = get_spades_type_name(path_count,paths[0],cov_val_before_update)
-            path_count += 1
-            final_paths_dict[name] = paths[0]
-            print paths[0]
-            print covs_before_update, "\n"
-            f_cyc_paths.write(name + "\n" +str(paths[0])+ "\n" + str(covs_before_update) + "\n")
-        paths = enum_high_mass_shortest_paths(comp)
+        # using initial set of paths or set from last iteration
+        # sort the paths by CV and test the lowest CV path for removal 
+        paths.sort(key=get_path_coverage_CV, reverse=False) # low to high
+        if get_total_path_mass(paths[0])<1:
+            curr_path = paths[0]
+            remove_path_nodes_from_graph(curr_path,comp)
+            paths.pop()
+            curr_paths=paths
+            paths = enum_high_mass_shortest_paths(comp)
+            continue
+        if get_path_coverage_CV(paths[0]) <= max_CV:
+            curr_path = paths[0]
+            updated_covs = [get_cov_from_SPAdes_name(a) for a in curr_path]
+            curr_paths.append(curr_path)
+            covs_before_update = [get_cov_from_SPAdes_name(p) for p in curr_path]
+            cov_val_before_update = get_total_path_mass(curr_path) /\
+             get_total_path_length(curr_path)
+            update_node_coverage_vals(curr_path, comp)
+            # clean_end_nodes_iteratively(comp)
+            if get_total_path_length(curr_path)>=min_length:
+
+                name = get_spades_type_name(path_count,curr_path,cov_val_before_update)
+                path_count += 1
+                final_paths_dict[name] = curr_path
+                print curr_path
+                print covs_before_update, "\n"
+                f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) + "\n")
+            paths = enum_high_mass_shortest_paths(comp)
 
 # done peeling
 # print final paths to screen
