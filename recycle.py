@@ -259,9 +259,13 @@ files_dir = os.path.dirname(fp.name)
 G = nx.DiGraph() 
 lines = get_adj_lines(fastg_name)
 G = nx.parse_adjlist(lines, create_using=G)
-cycs_ofile = fp.name.replace(".fastg", ".cycs.fasta")
-f_cycs_out = open(cycs_ofile, 'w')
-
+# fasta of sequences
+fasta_ofile = fp.name.replace(".fastg", ".cycs.fasta")
+f_cycs_fasta = open(fasta_ofile, 'w')
+# file containing path name (corr. to fasta), path, coverage levels
+# when path is added
+cycs_ofile = fp.name.replace(".fastg", ".cycs.paths_w_cov.txt")
+f_cyc_paths = open(cycs_ofile, 'w')
 
 ###################################
 # 2. get subgraph defined by component fasta
@@ -293,13 +297,21 @@ comp = G.subgraph(comp_nodes)
 # remove single node cycs ahead of time
 
 final_paths = set([])
+final_paths_dict = {}
 to_remove = set([])
 # remove single node cycles, store if long enough
 
+path_count = 0
 for nd in comp.nodes_with_selfloops(): #nodes_with_selfloops()
     if get_length_from_SPAdes_name(nd) >= min_length:
         if (rc_node(nd),) not in final_paths:
+
+            info = ["RNODE", str(path_count+1), "length", str(len(seq)),
+             "cov", '%.5f' % (get_total_path_mass((nd,))/get_total_path_length((nd,)))]
+            name = "_".join(info)
             final_paths.add((nd,))
+            final_paths_dict[name] = (nd,)
+            path_count += 1
     to_remove |= set([nd,rc_node(nd)])
 
 for nd in to_remove:
@@ -337,8 +349,14 @@ while(curr_paths != last_paths):
         # clean_end_nodes_iteratively(comp)
         if get_total_path_length(paths[0])>=min_length:
             final_paths.add(paths[0])
+            info = ["RNODE", str(path_count+1), "length", str(len(seq)),
+             "cov", '%.5f' % (get_total_path_mass(paths[0])/get_total_path_length(paths[0]))]
+            name = "_".join(info)
+            path_count += 1
+            final_paths_dict[name] = paths[0]
             print paths[0]
             print covs_before_update, "\n"
+            f_cyc_paths.write(name + "\n" +str(paths[0])+ "\n" + str(covs_before_update) + "\n")
         paths = enum_high_mass_shortest_paths(comp)
 
 # done peeling
@@ -348,12 +366,14 @@ for p in final_paths:
     print ""
 
 # write out to fasta file
-for ind, p in enumerate(final_paths):
-    seq = get_seq_from_path(p, seqs)
-    info = ["RNODE", str(ind+1), "length", str(len(seq)),
-     "cov", '%.5f' % (get_total_path_mass(p)/get_total_path_length(p))]
-    # print "_".join(info) + ":", ", ".join(p)
-    f_cycs_out.write(">" + "_".join(info) + ": " + ", ".join(p) + "\n" + seq + "\n")
+# for ind, p in enumerate(final_paths):
+#     seq = get_seq_from_path(p, seqs)
+#     info = ["RNODE", str(ind+1), "length", str(len(seq)),
+#      "cov", '%.5f' % (get_total_path_mass(p)/get_total_path_length(p))]
+#     # print "_".join(info) + ":", ", ".join(p)
+#     f_cycs_fasta.write(">" + "_".join(info) + ": " + ", ".join(p) + "\n" + seq + "\n")
 
-
+for p in final_paths_dict.keys():
+    seq = get_seq_from_path(final_paths_dict[p], seqs)
+    f_cycs_fasta.write(">" + p + "\n" + seq + "\n")    
 
