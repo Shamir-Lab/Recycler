@@ -61,8 +61,6 @@ def get_SPAdes_base_mass(G, name):
     coverage = get_cov_from_SPAdes_name(name)
     return length * coverage
 
-def get_total_path_length(path):
-    return sum([get_length_from_SPAdes_name(n) for n in path])
 
 
 def get_path_coverage_CV(path):
@@ -226,10 +224,15 @@ def get_seq_from_path(path, seqs, max_k_val=55):
             seq += get_fasta_stranded_seq(seqs, p)[max_k_val:]
     return seq
 
-def get_spades_type_name(count, path, cov=None):
+def get_total_path_length(path, seqs):
+    # return sum([get_length_from_SPAdes_name(n) for n in path])
+    seq = get_seq_from_path(path, seqs)
+    return len(seq)
+
+def get_spades_type_name(count, path, seqs, cov=None):
     if cov==None:
-        cov = get_total_path_mass(path)/get_total_path_length(path)
-    info = ["RNODE", str(count+1), "length", str(get_total_path_length(path)),
+        cov = get_total_path_mass(path)/get_total_path_length(path, seqs)
+    info = ["RNODE", str(count+1), "length", str(get_total_path_length(path, seqs)),
      "cov", '%.5f' % (cov)]
     return "_".join(info)
 
@@ -305,6 +308,7 @@ G = G.subgraph(seq_nodes)
 # remove single node cycs ahead of time
 
 self_loops = set([])
+non_self_looops = set([])
 final_paths_dict = {}
 to_remove = set([])
 # remove single node cycles, store if long enough
@@ -313,7 +317,7 @@ path_count = 0
 for nd in G.nodes_with_selfloops(): #nodes_with_selfloops()
     if get_length_from_SPAdes_name(nd) >= min_length:
         if (rc_node(nd),) not in self_loops:
-            name = get_spades_type_name(path_count, (nd,))
+            name = get_spades_type_name(path_count, (nd,), seqs)
             self_loops.add((nd,))
             final_paths_dict[name] = (nd,)
             path_count += 1
@@ -347,6 +351,7 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
             paths.pop()
             curr_paths=paths
             paths = enum_high_mass_shortest_paths(comp)
+            # paths not recalculated, just move on to the next one
             continue
         if get_path_coverage_CV(paths[0]) <= max_CV:
             curr_path = paths[0]
@@ -354,17 +359,18 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
             curr_paths.append(curr_path)
             covs_before_update = [get_cov_from_SPAdes_name(p) for p in curr_path]
             cov_val_before_update = get_total_path_mass(curr_path) /\
-             get_total_path_length(curr_path)
+             get_total_path_length(curr_path, seqs)
             update_node_coverage_vals(curr_path, comp)
             # clean_end_nodes_iteratively(comp)
-            if get_total_path_length(curr_path)>=min_length:
-
-                name = get_spades_type_name(path_count,curr_path,cov_val_before_update)
+            if get_total_path_length(curr_path, seqs)>=min_length and curr_path not in non_self_looops:
+                non_self_looops.add(curr_path)
+                name = get_spades_type_name(path_count,curr_path, seqs, cov_val_before_update)
                 path_count += 1
                 final_paths_dict[name] = curr_path
                 print curr_path
                 print covs_before_update, "\n"
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) + "\n")
+            # recalculate paths on the component
             paths = enum_high_mass_shortest_paths(comp)
 
 # done peeling
