@@ -89,19 +89,32 @@ def rc_node(node):
     if node[-1] == "'": return node[:-1]
     else: return node + "'"
 
+def get_unoriented_sorted_str(path):
+    """ creates unq orientation oblivious string rep. of path, 
+        used to make sure node covered whenever rc of node is; 
+        lets us avoid issue of rc of node having different weight than node
+    """
+    all_rc_path = []
+    for p in path:
+        if p[-1] != "'": p = p+"'"
+        all_rc_path.append(p)
+    return "".join(sorted(all_rc_path))
 
-def enum_high_mass_shortest_paths(G):
+def enum_high_mass_shortest_paths(G, seen_paths=[]):
     """ given component subgraph, returns list of paths that
         - is non-redundant (includes) no repeats of same cycle
         - includes all cycles starting at node n, taking 
         shortest path (by 1/(length * coverage)) to each of 
         its predecessors, and returning to n
     """
-    # if nodes==None:
+
     nodes = []
     nodes[:] = G.nodes()
 
     unq_sorted_paths = set([])
+    # in case orientation obliv. sorted path strings passed in
+    for p in seen_paths:
+        unq_sorted_paths.add(p)
     paths = []
     # use add_edge to assign edge weights to be 1/mass of starting node
     for e in G.edges():
@@ -119,23 +132,18 @@ def enum_high_mass_shortest_paths(G):
             except nx.exception.NetworkXNoPath:
                 continue
 
-            # making sure node covered whenever rc of node is lets us avoid
-            # issue of rc of node having different weight than node
-            # below - create copy of path with each node as rc version
-            # use as unique representation of a path and rc of its whole
-            all_rc_path = []
-            for p in path:
-                if p[-1] != "'": p = p+"'"
-                all_rc_path.append(p)
+            
+            # below: create copy of path with each node as rc version
+            # use as unique representation of a path and rc of its whole            
+            unoriented_sorted_path_str = get_unoriented_sorted_str(path)
 
             # here we avoid considering cyclic rotations of identical paths
             # by sorting their string representations (all_rc_path above) 
             # and comparing against the set already stored
-            srt = "".join(sorted(all_rc_path))
-            if srt not in unq_sorted_paths:
-                unq_sorted_paths.add(srt)
+            if unoriented_sorted_path_str not in unq_sorted_paths:
+                unq_sorted_paths.add(unoriented_sorted_path_str)
                 paths.append(tuple(path))
-                
+    
     return paths
 
 
@@ -147,46 +155,20 @@ def update_node_coverage_vals(path, comp, seqs):
     """ given a path, updates node coverage values
         assuming mean observed path coverage is used
     """
-    # print path
     path_copy = list(path)
     tot = get_total_path_mass(path)
-    # print "total mass is ", tot
-    mean_cov = tot / get_total_path_length(path,seqs)
-    removed = []
-    removed_mean = 0
-    # print "mean path coverage is ", mean_cov
-    for nd in path:
-        nd2 = rc_node(nd)
-        
-        if comp.in_degree(nd)==1 and comp.out_degree(nd)==1 and\
-        comp.in_degree(nd2)==1 and comp.out_degree(nd2)==1:
-            
-            removed.append(nd)
-            # print "removed node ", nd
-        
-    for nd in removed:
-        nd2 = rc_node(nd)
-        if nd in comp:
-            comp.remove_node(nd)
-        if nd2 in comp:
-            comp.remove_node(nd2)
-        path_copy.remove(nd)
-    if len(removed)>0:
-        removed_mean = np.mean([get_cov_from_SPAdes_name(p) for p in removed])
-    # print [get_cov_from_SPAdes_name(p) for p in removed]
-    # print "mean of removed nodes is ", removed_mean
-    if removed_mean==0: # no nodes removed - remove all
-        new_cov = 1e-6
-    elif removed_mean < mean_cov:
-        new_cov = mean_cov - removed_mean
-    else:
-        new_cov = 1e-6
+    mean_cov = tot / get_total_path_length(path, seqs)
 
     for nd in path_copy:
         nd2 = rc_node(nd)
-        comp.node[nd]['cov'] = new_cov
+        if nd in comp:
+            new_cov = get_cov_from_SPAdes_name(nd) - mean_cov
+            if new_cov <= 0: comp.remove_node(nd)
         if nd2 in comp:
-            comp.node[nd2]['cov'] = new_cov
+            new_cov = get_cov_from_SPAdes_name(nd2) - mean_cov
+            if new_cov <= 0: comp.remove_node(nd2)
+
+
 
 def clean_end_nodes_iteratively(G):
     while(True):
@@ -301,14 +283,12 @@ G = G.subgraph(seq_nodes)
 
 ###################################
 # 3. generate all shortest cycles from each node
-# to each of its predecessors until all nodes included
-# in some cycle
+# to each of its predecessors 
 
-# naive approach (needs to be optimized for speed):
 # remove single node cycs ahead of time
 
 self_loops = set([])
-non_self_looops = set([])
+non_self_loops = set([])
 final_paths_dict = {}
 to_remove = set([])
 # remove single node cycles, store if long enough
@@ -326,62 +306,70 @@ for nd in G.nodes_with_selfloops(): #nodes_with_selfloops()
 for nd in to_remove:
     if nd in G: G.remove_node(nd)
 
+H = G.to_undirected()
+
 print "================== path, coverage levels when added ===================="
-for comp in list(nx.strongly_connected_component_subgraphs(G)):
+for comp in list(nx.connected_component_subgraphs(H)):
+    comp = G.subgraph(comp.nodes())
  
     # initialize shortest path set considered
     paths = enum_high_mass_shortest_paths(comp)
 
-    curr_paths = paths
-    last_paths = []
-
     # peeling - iterate until no change in path set from 
     # one iteration to next
-    while(curr_paths != last_paths):
-        last_paths[:] = curr_paths
-        curr_paths = []
+
+    
+    last_path_count = 0
+    last_node_count = 0
+    # continue as long as you either removed a low mass path
+    # from the component or added a new path to final paths
+    while(path_count!=last_path_count or\
+        len(comp.nodes())!=last_node_count):
+        last_node_count = len(comp.nodes())
+        last_path_count = path_count
+
         if(len(paths)==0): break
 
         # using initial set of paths or set from last iteration
         # sort the paths by CV and test the lowest CV path for removal 
         paths.sort(key=get_path_coverage_CV, reverse=False) # low to high
-        if get_total_path_mass(paths[0])<1:
-            curr_path = paths[0]
+        curr_path = paths[0]
+        if get_total_path_mass(curr_path)<1:
             remove_path_nodes_from_graph(curr_path,comp)
-            paths.pop()
-            curr_paths=paths
-            paths = enum_high_mass_shortest_paths(comp)
-            # paths not recalculated, just move on to the next one
+            # recalc. paths since some might have been disrupted
+            non_self_loops.add(get_unoriented_sorted_str(curr_path))
+            paths = enum_high_mass_shortest_paths(comp,non_self_loops)
             continue
-        if get_path_coverage_CV(paths[0]) <= max_CV:
-            curr_path = paths[0]
-            updated_covs = [get_cov_from_SPAdes_name(a) for a in curr_path]
-            curr_paths.append(curr_path)
+        if get_path_coverage_CV(curr_path) <= max_CV and \
+        get_unoriented_sorted_str(curr_path) not in non_self_loops:
+            
             covs_before_update = [get_cov_from_SPAdes_name(p) for p in curr_path]
             cov_val_before_update = get_total_path_mass(curr_path) /\
              get_total_path_length(curr_path, seqs)
             update_node_coverage_vals(curr_path, comp, seqs)
             # clean_end_nodes_iteratively(comp)
-            if get_total_path_length(curr_path, seqs)>=min_length and curr_path not in non_self_looops:
-                non_self_looops.add(curr_path)
-                name = get_spades_type_name(path_count,curr_path, seqs, cov_val_before_update)
-                path_count += 1
-                final_paths_dict[name] = curr_path
+            name = get_spades_type_name(path_count,curr_path, seqs, cov_val_before_update)
+            path_count += 1
+            non_self_loops.add(get_unoriented_sorted_str(curr_path))
+            final_paths_dict[name] = curr_path
+
+            # only report to file if long enough
+            if get_total_path_length(curr_path, seqs)>=min_length:
                 print curr_path
                 print covs_before_update, "\n"
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) + "\n")
             # recalculate paths on the component
-            paths = enum_high_mass_shortest_paths(comp)
+            paths = enum_high_mass_shortest_paths(comp,non_self_loops)
 
 # done peeling
 # print final paths to screen
 print "==================final_paths identities after updates: ================"
-for p in final_paths_dict.keys():
-    print final_paths_dict[p]
-    print ""
 
 # write out sequences to fasta
 for p in final_paths_dict.keys():
     seq = get_seq_from_path(final_paths_dict[p], seqs)
-    f_cycs_fasta.write(">" + p + "\n" + seq + "\n")    
+    print final_paths_dict[p]
+    print ""
+    if len(seq)>=min_length:
+        f_cycs_fasta.write(">" + p + "\n" + seq + "\n")    
 
