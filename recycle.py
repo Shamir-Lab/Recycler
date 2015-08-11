@@ -143,7 +143,7 @@ def get_total_path_mass(path):
     return sum([get_length_from_SPAdes_name(p) * \
         get_cov_from_SPAdes_name(p) for p in path])
 
-def update_node_coverage_vals(path, comp):
+def update_node_coverage_vals(path, comp, seqs):
     """ given a path, updates node coverage values
         assuming mean observed path coverage is used
     """
@@ -151,7 +151,7 @@ def update_node_coverage_vals(path, comp):
     path_copy = list(path)
     tot = get_total_path_mass(path)
     # print "total mass is ", tot
-    mean_cov = tot / get_total_path_length(path)
+    mean_cov = tot / get_total_path_length(path,seqs)
     removed = []
     removed_mean = 0
     # print "mean path coverage is ", mean_cov
@@ -360,7 +360,7 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
             covs_before_update = [get_cov_from_SPAdes_name(p) for p in curr_path]
             cov_val_before_update = get_total_path_mass(curr_path) /\
              get_total_path_length(curr_path, seqs)
-            update_node_coverage_vals(curr_path, comp)
+            update_node_coverage_vals(curr_path, comp, seqs)
             # clean_end_nodes_iteratively(comp)
             if get_total_path_length(curr_path, seqs)>=min_length and curr_path not in non_self_looops:
                 non_self_looops.add(curr_path)
