@@ -47,8 +47,12 @@ def get_length_from_SPAdes_name(name):
     contig_length = name_parts[3]
     return int(contig_length)
 
-def get_cov_from_SPAdes_name(name):
+def get_cov_from_SPAdes_name(name,G):
+    if name not in G:
+        return 0
+
     if 'cov' in G.node[name]:
+        print "found a coverage"
         return G.node[name]['cov']
     else:
         name_parts = name.split("_")
@@ -58,13 +62,13 @@ def get_cov_from_SPAdes_name(name):
 
 def get_SPAdes_base_mass(G, name):
     length = get_length_from_SPAdes_name(name)
-    coverage = get_cov_from_SPAdes_name(name)
+    coverage = get_cov_from_SPAdes_name(name,G)
     return length * coverage
 
 
 
-def get_path_coverage_CV(path):
-    covs = np.array([get_cov_from_SPAdes_name(n) for n in path])
+def get_path_coverage_CV(path,G):
+    covs = np.array([get_cov_from_SPAdes_name(n,G) for n in path])
     if len(covs)< 2: return 0.000001
     mean = np.mean(covs)
     std = np.std(covs)
@@ -147,28 +151,38 @@ def enum_high_mass_shortest_paths(G, seen_paths=[]):
     return paths
 
 
-def get_total_path_mass(path):
+def get_total_path_mass(path,G):
     return sum([get_length_from_SPAdes_name(p) * \
-        get_cov_from_SPAdes_name(p) for p in path])
+        get_cov_from_SPAdes_name(p,G) for p in path])
 
-def update_node_coverage_vals(path, comp, seqs):
+def update_node_coverage_vals(path, G, seqs):
     """ given a path, updates node coverage values
         assuming mean observed path coverage is used
     """
     path_copy = list(path)
-    tot = get_total_path_mass(path)
+    tot = get_total_path_mass(path,G)
     mean_cov = tot / get_total_path_length(path, seqs)
-
+    print "mean cov is ", mean_cov
     for nd in path_copy:
         nd2 = rc_node(nd)
-        if nd in comp:
-            new_cov = get_cov_from_SPAdes_name(nd) - mean_cov
-            if new_cov <= 0: comp.remove_node(nd)
-        if nd2 in comp:
-            new_cov = get_cov_from_SPAdes_name(nd2) - mean_cov
-            if new_cov <= 0: comp.remove_node(nd2)
-
-
+        if nd in G:
+            new_cov = get_cov_from_SPAdes_name(nd,G) - mean_cov
+            if new_cov <= 0: 
+                G.remove_node(nd)
+                print nd, " removed"
+            else:
+                G.add_node(nd, cov=new_cov)
+                # comp.node[nd]['cov'] = new_cov
+                print "cov of ", nd, " updated to ", G.node[nd]['cov']
+        if nd2 in G:
+            new_cov = get_cov_from_SPAdes_name(nd2,G) - mean_cov
+            if new_cov <= 0:
+                G.remove_node(nd2)
+                print nd, " removed"
+            else:
+                G.add_node(nd2, cov=new_cov)
+                # comp.node[nd2]['cov'] = new_cov
+                print "cov of ", nd, " updated to ", G.node[nd2]['cov']
 
 def clean_end_nodes_iteratively(G):
     while(True):
@@ -219,17 +233,27 @@ def get_spades_type_name(count, path, seqs, cov=None):
     return "_".join(info)
 
 def parse_user_input():
-    parser = argparse.ArgumentParser(description='recycle extracts cycles likely to be plasmids from metagenome and genome assembly graphs')
-    parser.add_argument('-g','--graph', help='(SPAdes 3.50+) FASTG file to process [recommended: before_rr.fastg]',
-     required=True, type=str)
+    parser = argparse.ArgumentParser(
+        description=
+        'recycle extracts cycles likely to be plasmids from metagenome and genome assembly graphs'
+        )
+    parser.add_argument('-g','--graph',
+     help='(SPAdes 3.50+) FASTG file to process [recommended: before_rr.fastg]',
+     required=True, type=str
+     )
     parser.add_argument('-s',
         '--sequences', help='FASTA file (contigs of interest in the graph) to process',
-         required=True, type=str)
-    parser.add_argument('-l', '--length', help='minimum length required for reporting [default: 1000]',
-     required=False, type=int, default=1000)
+         required=True, type=str
+         )
+    parser.add_argument('-l', '--length',
+     help='minimum length required for reporting [default: 1000]',
+     required=False, type=int, default=1000
+     )
     parser.add_argument('-m', '--max_CV',
-     help='coefficient of variation used for pre-selection [default: 0.50, higher--> less restrictive]; Note: not a requisite for selection',
-      required=False, default=1./2, type=float)
+     help='coefficient of variation used for pre-selection '+
+     '[default: 0.50, higher--> less restrictive]; Note: not a requisite for selection',
+      required=False, default=1./2, type=float
+      )
 
     return parser.parse_args()
 
@@ -306,11 +330,11 @@ for nd in G.nodes_with_selfloops(): #nodes_with_selfloops()
 for nd in to_remove:
     if nd in G: G.remove_node(nd)
 
-H = G.to_undirected()
+# H = G.to_undirected()
 
 print "================== path, coverage levels when added ===================="
-for comp in list(nx.connected_component_subgraphs(H)):
-    comp = G.subgraph(comp.nodes())
+for comp in list(nx.strongly_connected_component_subgraphs(G)):
+    # comp = G.subgraph(comp.nodes())
  
     # initialize shortest path set considered
     paths = enum_high_mass_shortest_paths(comp)
@@ -330,23 +354,26 @@ for comp in list(nx.connected_component_subgraphs(H)):
 
         if(len(paths)==0): break
 
+        print "paths ", paths 
         # using initial set of paths or set from last iteration
         # sort the paths by CV and test the lowest CV path for removal 
-        paths.sort(key=get_path_coverage_CV, reverse=False) # low to high
+        
+        sort_fun = lambda x: get_cov_from_SPAdes_name(x,G)
+        paths.sort(key=sort_fun, reverse=False) # low to high
         curr_path = paths[0]
-        if get_total_path_mass(curr_path)<1:
+        if get_total_path_mass(curr_path,G)<1:
             remove_path_nodes_from_graph(curr_path,comp)
             # recalc. paths since some might have been disrupted
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
             paths = enum_high_mass_shortest_paths(comp,non_self_loops)
             continue
-        if get_path_coverage_CV(curr_path) <= max_CV and \
+        if get_path_coverage_CV(curr_path,G) <= max_CV and \
         get_unoriented_sorted_str(curr_path) not in non_self_loops:
             
-            covs_before_update = [get_cov_from_SPAdes_name(p) for p in curr_path]
-            cov_val_before_update = get_total_path_mass(curr_path) /\
+            covs_before_update = [get_cov_from_SPAdes_name(p,G) for p in curr_path]
+            cov_val_before_update = get_total_path_mass(curr_path,G) /\
              get_total_path_length(curr_path, seqs)
-            update_node_coverage_vals(curr_path, comp, seqs)
+            update_node_coverage_vals(curr_path, G, seqs)
             # clean_end_nodes_iteratively(comp)
             name = get_spades_type_name(path_count,curr_path, seqs, cov_val_before_update)
             path_count += 1
@@ -356,7 +383,9 @@ for comp in list(nx.connected_component_subgraphs(H)):
             # only report to file if long enough
             if get_total_path_length(curr_path, seqs)>=min_length:
                 print curr_path
-                print covs_before_update, "\n"
+                print "before", covs_before_update
+                print "after", [get_cov_from_SPAdes_name(p,G) for p in curr_path]
+                print len(comp.nodes()), " nodes remain\n"
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) + "\n")
             # recalculate paths on the component
             paths = enum_high_mass_shortest_paths(comp,non_self_loops)
