@@ -157,6 +157,46 @@ def update_node_coverage_vals(path, G, comp, seqs):
     """ given a path, updates node coverage values
         assuming mean observed path coverage is used
     """
+    # path_copy = list(path)
+    # tot = get_total_path_mass(path,G)
+    # mean_cov = tot / get_total_path_length(path, seqs)
+    # removed = []
+    # removed_mean = 0
+    # for nd in path:
+    #     nd2 = rc_node(nd)
+        
+    #     if comp.in_degree(nd)==1 and comp.out_degree(nd)==1 and\
+    #     comp.in_degree(nd2)==1 and comp.out_degree(nd2)==1:
+            
+    #         removed.append(nd)
+        
+    # for nd in removed:
+    #     nd2 = rc_node(nd)
+    #     if nd in comp and nd in G:
+    #         G.remove_node(nd)
+    #         comp.remove_node(nd)
+    #     if nd2 in comp and nd2 in G:
+    #         G.removed_node(nd2)
+    #         comp.remove_node(nd2)
+    #     path_copy.remove(nd)
+
+    # if len(removed)>0:
+    #     removed_mean = np.mean([get_cov_from_SPAdes_name(p,G) for p in removed])
+    
+    # if removed_mean==0: # no nodes removed - remove all
+    #     new_cov = 1e-6
+    # elif removed_mean < mean_cov:
+    #     new_cov = mean_cov - removed_mean
+    # else:
+    #     new_cov = 1e-6
+
+    # for nd in path_copy:
+    #     nd2 = rc_node(nd)
+    #     G.add_node(nd, cov=new_cov)
+    #     comp.add_node(nd, cov=new_cov)
+    #     G.add_node(nd2, cov=new_cov)
+    #     comp.add_node(nd2, cov=new_cov)
+        
     path_copy = list(path)
     tot = get_total_path_mass(path,G)
     mean_cov = tot / get_total_path_length(path, seqs)
@@ -383,9 +423,18 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
         # using initial set of paths or set from last iteration
         # sort the paths by CV and test the lowest CV path for removal 
         # need to use lambda because get_cov needs 2 parameters
-        sort_fun = lambda x: get_cov_from_SPAdes_name(x,G)
-        paths.sort(key=sort_fun, reverse=False) # low to high
-        curr_path = paths[0]
+        
+        # sort_fun = lambda x: get_cov_from_SPAdes_name(x,G)
+        # paths = sorted(paths, key=sort_fun, reverse=False) # low to high
+        
+        path_tuples = []
+        for p in paths:
+            path_tuples.append((get_path_coverage_CV(p,G), p))
+        path_tuples.sort(key=lambda path: path[0])
+        # for p in path_tuples:
+        #     print p
+        curr_path = path_tuples[0][1]
+        # print "\ncurr_path", curr_path
         if get_total_path_mass(curr_path,G)<1:
             remove_path_nodes_from_graph(curr_path,comp)
             # recalc. paths since some might have been disrupted
