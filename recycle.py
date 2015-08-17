@@ -285,8 +285,8 @@ def parse_user_input():
      )
     parser.add_argument('-m', '--max_CV',
      help='coefficient of variation used for pre-selection '+
-     '[default: 0.50, higher--> less restrictive]; Note: not a requisite for selection',
-      required=False, default=1./2, type=float
+     '[default: 0.25, higher--> less restrictive]; Note: not a requisite for selection',
+      required=False, default=1./4, type=float
       )
 
     return parser.parse_args()
