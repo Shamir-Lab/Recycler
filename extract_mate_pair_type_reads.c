@@ -2,7 +2,7 @@
 #include "bam.h"
 #include "sam.h"
 
-// to compile, in ~/plasmid_code dir run: gcc -o filter_ands extract_mate_pair_type_reads.c -L. -lbam -lz
+// to compile, in ~/plasmid_code dir run: gcc -o fetch_ands extract_mate_pair_type_reads.c -L. -lbam -lz
 // based on https://www.biostars.org/p/77802/
 
 int main(int argc, char* argv[]) {
@@ -22,7 +22,9 @@ int main(int argc, char* argv[]) {
     bam_header_t *head = ifile->header;
 
     //Open output file
-    ofile = samopen("AND_type_filtered.bam", "wb", ifile->header);
+    // ofile = samopen("AND_type.bam", "wb", ifile->header);
+    ofile = samopen(argv[2], "wb", ifile->header);
+
 
     //Iterate through the lines
     while(samread(ifile, read) > 1) {

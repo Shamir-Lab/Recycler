@@ -191,7 +191,7 @@ def parse_user_input():
       )
     parser.add_argument('-b','--bam', 
         help='BAM file result of aligning reads to fasta file -- must be sorted by contig coordinates with samtools', 
-        required=True, type=str
+        required=False, type=str
         )
     return parser.parse_args()
 
@@ -223,21 +223,59 @@ cycs_ofile = fp.name.replace(".fastg", ".cycs.paths_w_cov.txt")
 f_cyc_paths = open(cycs_ofile, 'w')
 
 ###################################
-# 2a. extract self loop edges
-# and sink to sink connections inside
-# components using BAM file
-bam_name = args.bam
+# 2a. extract self loop edges from nodes having
+# AND-types == outies on both ends at most 500 bp away from end
+bam_name = "AND_type_filtered.srt.bam" #args.bam
 samfile = pysam.AlignmentFile(bam_name)
-fp = open(seqs_name, 'r')
-refs = []
-for name,seq,qual in readfq(fp):
-    refs.append(seq)
 
-for ref in refs:
-    for aln in samfile.fetch(ref):
-        if (aln.get_tid() == aln.mate.get_tid())
+print "before adding, ", len(G.edges()), " edges"
+
+for node in G.nodes():
+    try:
+        hits = list(samfile.fetch(node))
+        if len(hits)>1:
+            G.add_edge(node,node)
+            G.add_edge(rc_node(node),rc_node(node))
+    except ValueError:
+        continue
+
+print "after adding, ", len(G.edges()), " edges"
 
 
+# next use contig_joining_type to connect
+# sink nodes having more than one pair of reads
+# connecting them
+bam_name = "contig_joining_type.srt.bam"
+samfile = pysam.AlignmentFile(bam_name)
+print "before adding, ", len(G.edges()), " edges"
+
+sinks = []
+hit_cnts = {}
+for node in G.nodes():
+    if G.out_degree(node)==0: #or G.in_degree(node)==0:
+        sinks.append(node)
+# print len(sinks), " sinks: ", sinks
+for node in sinks:
+    try:
+        hits = samfile.fetch(node)
+        # print len(list(hits)), " hits to sink"
+        # for h in samfile.fetch(node):
+        #     print h
+        for hit in samfile.fetch(node):
+            nref = samfile.getrname(hit.next_reference_id)
+            # print "nref ", nref
+            # print hit
+            if nref in sinks: #comp.nodes():
+                hit_cnts[(node,nref)] = hit_cnts.get((node,nref),0)+1
+                # print "got to adding nodes"
+                if hit_cnts[(node,nref)]>1:
+                    G.add_edge(node, nref)
+                    G.add_edge(rc_node(nref), rc_node(node))
+
+    except ValueError:
+        continue
+            
+print "after adding, ", len(G.edges()), " edges"
 
 
 # 2b. get subgraph defined by component fasta
@@ -258,45 +296,6 @@ if (not (len(seq_nodes)>0 and len(seq_nodes)%2==0)):
     quit()
 
 G = G.subgraph(seq_nodes)
-
-
-
-# # 1. read in just sequence names from fasta
-# comp_edges =  [] 
-# fp = open(fasta_name, 'r')
-
-# if args.output_prefix:
-#     files_dir = args.output_prefix
-# else:
-#     files_dir = os.path.dirname(fp.name)
-# print files_dir
-# for name,seq,qual in readfq(fp):
-#     comp_edges.append(name) 
-
-# # 2. retrieve all reads mapping to comp. contigs 
-# # splits reads by mapping type, converts to fastq
-# # iterate over alignments, retrieve reference name mapped to
-# # if ref in comp edge set, keep read
-# proper_r1 = []
-# proper_r2 = []
-# improper_r1 = []
-# improper_r2 = []
-# unmapped_r1 = []
-# unmapped_r2 = []
-
-# for ref in comp_edges:
-#     for aln in samfile.fetch(ref):
-#         if aln.is_unmapped:
-#             if aln.is_read1: unmapped_r1.append(aln)
-#             else: unmapped_r2.append(aln)
-#         elif aln.is_read1:
-#             if aln.is_proper_pair: proper_r1.append(aln)
-#             else: improper_r1.append(aln)
-#         else:
-#             if aln.is_proper_pair: proper_r2.append(aln)
-#             else: improper_r2.append(aln)
-
-
 
 
 ###################################

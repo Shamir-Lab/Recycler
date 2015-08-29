@@ -2,7 +2,7 @@
 #include "bam.h"
 #include "sam.h"
 
-// to compile, in ~/plasmid_code dir run: gcc -o filter_joins extract_contig_joining_type_reads.c -L. -lbam -lz
+// to compile, in ~/plasmid_code dir run: gcc -o fetch_joins extract_contig_joining_type_reads.c -L. -lbam -lz
 // based on https://www.biostars.org/p/77802/
 
 int main(int argc, char* argv[]) {
@@ -22,7 +22,8 @@ int main(int argc, char* argv[]) {
     bam_header_t *head = ifile->header;
 
     //Open output file
-    ofile = samopen("contig_joining_type.bam", "wb", ifile->header);
+    // ofile = samopen("contig_joining_type.bam", "wb", ifile->header);
+    ofile = samopen(argv[2], "wb", ifile->header);
 
     //Iterate through the lines
     while(samread(ifile, read) > 1) {
