@@ -225,57 +225,58 @@ f_cyc_paths = open(cycs_ofile, 'w')
 ###################################
 # 2a. extract self loop edges from nodes having
 # AND-types == outies on both ends at most 500 bp away from end
-bam_name = "AND_type_filtered.srt.bam" #args.bam
-samfile = pysam.AlignmentFile(bam_name)
 
-print "before adding, ", len(G.edges()), " edges"
+# bam_name = "AND_type_filtered.srt.bam" #args.bam
+# samfile = pysam.AlignmentFile(bam_name)
 
-for node in G.nodes():
-    try:
-        hits = list(samfile.fetch(node))
-        if len(hits)>1:
-            G.add_edge(node,node)
-            G.add_edge(rc_node(node),rc_node(node))
-    except ValueError:
-        continue
+# print "before adding, ", len(G.edges()), " edges"
 
-print "after adding, ", len(G.edges()), " edges"
+# for node in G.nodes():
+#     try:
+#         hits = list(samfile.fetch(node))
+#         if len(hits)>1:
+#             G.add_edge(node,node)
+#             G.add_edge(rc_node(node),rc_node(node))
+#     except ValueError:
+#         continue
+
+# print "after adding, ", len(G.edges()), " edges"
 
 
-# next use contig_joining_type to connect
-# sink nodes having more than one pair of reads
-# connecting them
-bam_name = "contig_joining_type.srt.bam"
-samfile = pysam.AlignmentFile(bam_name)
-print "before adding, ", len(G.edges()), " edges"
+# # next use contig_joining_type to connect
+# # sink nodes having more than one pair of reads
+# # connecting them
+# bam_name = "contig_joining_type.srt.bam"
+# samfile = pysam.AlignmentFile(bam_name)
+# print "before adding, ", len(G.edges()), " edges"
 
-sinks = []
-hit_cnts = {}
-for node in G.nodes():
-    if G.out_degree(node)==0: #or G.in_degree(node)==0:
-        sinks.append(node)
-# print len(sinks), " sinks: ", sinks
-for node in sinks:
-    try:
-        hits = samfile.fetch(node)
-        # print len(list(hits)), " hits to sink"
-        # for h in samfile.fetch(node):
-        #     print h
-        for hit in samfile.fetch(node):
-            nref = samfile.getrname(hit.next_reference_id)
-            # print "nref ", nref
-            # print hit
-            if nref in sinks: #comp.nodes():
-                hit_cnts[(node,nref)] = hit_cnts.get((node,nref),0)+1
-                # print "got to adding nodes"
-                if hit_cnts[(node,nref)]>1:
-                    G.add_edge(node, nref)
-                    G.add_edge(rc_node(nref), rc_node(node))
+# sinks = []
+# hit_cnts = {}
+# for node in G.nodes():
+#     if G.out_degree(node)==0: #or G.in_degree(node)==0:
+#         sinks.append(node)
+# # print len(sinks), " sinks: ", sinks
+# for node in sinks:
+#     try:
+#         hits = samfile.fetch(node)
+#         # print len(list(hits)), " hits to sink"
+#         # for h in samfile.fetch(node):
+#         #     print h
+#         for hit in samfile.fetch(node):
+#             nref = samfile.getrname(hit.next_reference_id)
+#             # print "nref ", nref
+#             # print hit
+#             if nref in sinks: #comp.nodes():
+#                 hit_cnts[(node,nref)] = hit_cnts.get((node,nref),0)+1
+#                 # print "got to adding nodes"
+#                 if hit_cnts[(node,nref)]>1:
+#                     G.add_edge(node, nref)
+#                     G.add_edge(rc_node(nref), rc_node(node))
 
-    except ValueError:
-        continue
+#     except ValueError:
+#         continue
             
-print "after adding, ", len(G.edges()), " edges"
+# print "after adding, ", len(G.edges()), " edges"
 
 
 # 2b. get subgraph defined by component fasta
