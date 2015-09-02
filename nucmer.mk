@@ -33,11 +33,11 @@ $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer: $(INPUT_DIR)/iter2_on_$(INPUT1
 $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary: $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.delta 
 	touch $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary
 	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.delta | \
-	awk '$10==100.00 && $15==100.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary
+	awk '$$10==100.00 && $$15==100.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary
 	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.delta | \
-	awk '$10==100.00 && $15>=90.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary
+	awk '$$10==100.00 && $$15>=90.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary
 	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.delta | \
-	awk '$10==100.00 && $15>=80.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary
+	awk '$$10==100.00 && $$15>=80.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary
 
 clean:
 	rm $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).cycs.dbl.fasta
