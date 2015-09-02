@@ -18,12 +18,15 @@ else
 endif
 
 
+all: $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).cycs.dbl.fasta $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary
+
 # 1) concat output cycles to self:
 $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).cycs.dbl.fasta: $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).cycs.fasta
 	python ~/recycle/concat_seq_to_self.py -i $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).cycs.fasta
 
 # 2) run nucmer
 $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer: $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).cycs.dbl.fasta
+	echo "great"
 	/home/gaga/rozovr/MUMmer3.23/nucmer $(REF) $^ -p $@
 
 # 3) parse alignments, write out summary 
@@ -39,4 +42,4 @@ $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary: $(INPUT_DIR)/iter2_on_
 clean:
 	rm $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).cycs.dbl.fasta
 	rm $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.delta
-	rm $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer_summary
+	rm $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2).nucmer.summary
