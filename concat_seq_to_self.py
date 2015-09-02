@@ -1,4 +1,4 @@
-import argparse
+import argparse, os
 
 def readfq(fp): # this is a generator function
     """ # lh3's fast fastX reader: 
@@ -50,7 +50,8 @@ fasta_name = args.input
 
 
 fp = open(fasta_name, 'r')
-out_name = fasta_ofile = fp.name.replace(".fasta", ".dbl.fasta")
+(root,ext) = os.path.splitext(fp.name)
+out_name = root + ext.replace(".fasta", ".dbl.fasta")
 fo = open(out_name, 'w')
 
 for name,seq,qual in readfq(fp):
