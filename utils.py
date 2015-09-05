@@ -78,6 +78,20 @@ def get_total_path_length(path, seqs):
     seq = get_seq_from_path(path, seqs)
     return len(seq)
 
+def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
+    covs = np.array([get_cov_from_SPAdes_name(n,G) for n in path])
+    if len(covs)< 2: return 0.000001
+    # mean = np.mean(covs)
+    wgts = np.array([(get_length_from_SPAdes_name(n)-max_k_val) for n in path])
+    mean = np.average(covs, weights = wgts)
+    tot_len = get_total_path_length(path, seqs)
+    wgts = np.multiply(wgts, 1./tot_len)   
+    std = sum(np.dot(wgts,(covs-mean)**2))
+
+    # if mean == 0: return 1000 
+    return std/mean
+
+
 def get_path_coverage_CV(path,G):
     covs = np.array([get_cov_from_SPAdes_name(n,G) for n in path])
     if len(covs)< 2: return 0.000001

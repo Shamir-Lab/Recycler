@@ -215,26 +215,30 @@ G = nx.DiGraph()
 lines = get_adj_lines(fastg_name)
 G = nx.parse_adjlist(lines, create_using=G)
 # fasta of sequences
-fasta_ofile = fp.name.replace(".fastg", ".cycs.fasta")
+(root,ext) = os.path.splitext(fp.name)
+fasta_ofile = root + ext.replace(".fastg", ".cycs.fasta")
 f_cycs_fasta = open(fasta_ofile, 'w')
 # file containing path name (corr. to fasta), path, coverage levels
 # when path is added
-cycs_ofile = fp.name.replace(".fastg", ".cycs.paths_w_cov.txt")
+cycs_ofile = root + ext.replace(".fastg", ".cycs.paths_w_cov.txt")
 f_cyc_paths = open(cycs_ofile, 'w')
 
 ###################################
 # 2a. extract self loop edges from nodes having
 # AND-types == outies on both ends at most 500 bp away from end
 
-# bam_name = "AND_type_filtered.srt.bam" #args.bam
+# bam_name = "/vol/scratch/rozovr/M_res/AND_type_filtered.bam" #args.bam
 # samfile = pysam.AlignmentFile(bam_name)
 
 # print "before adding, ", len(G.edges()), " edges"
 
 # for node in G.nodes():
 #     try:
-#         hits = list(samfile.fetch(node))
-#         if len(hits)>1:
+#         hits = samfile.fetch(node)
+#         num_hits = sum(1 for _ in hits)
+
+#         # print len(hits), hits 
+#         if num_hits>1:
 #             G.add_edge(node,node)
 #             G.add_edge(rc_node(node),rc_node(node))
 #     except ValueError:
@@ -246,29 +250,25 @@ f_cyc_paths = open(cycs_ofile, 'w')
 # # next use contig_joining_type to connect
 # # sink nodes having more than one pair of reads
 # # connecting them
-# bam_name = "contig_joining_type.srt.bam"
+# bam_name = "/vol/scratch/rozovr/M_res/contig_joining_type.srt.bam"
 # samfile = pysam.AlignmentFile(bam_name)
 # print "before adding, ", len(G.edges()), " edges"
 
 # sinks = []
 # hit_cnts = {}
 # for node in G.nodes():
-#     if G.out_degree(node)==0: #or G.in_degree(node)==0:
+#     if G.out_degree(node)==0:
 #         sinks.append(node)
 # # print len(sinks), " sinks: ", sinks
 # for node in sinks:
 #     try:
 #         hits = samfile.fetch(node)
-#         # print len(list(hits)), " hits to sink"
-#         # for h in samfile.fetch(node):
-#         #     print h
+        
 #         for hit in samfile.fetch(node):
 #             nref = samfile.getrname(hit.next_reference_id)
-#             # print "nref ", nref
-#             # print hit
-#             if nref in sinks: #comp.nodes():
+            
+#             if nref in sinks: 
 #                 hit_cnts[(node,nref)] = hit_cnts.get((node,nref),0)+1
-#                 # print "got to adding nodes"
 #                 if hit_cnts[(node,nref)]>1:
 #                     G.add_edge(node, nref)
 #                     G.add_edge(rc_node(nref), rc_node(node))
@@ -353,7 +353,8 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
         
         path_tuples = []
         for p in paths:
-            path_tuples.append((get_path_coverage_CV(p,G), p))
+            # path_tuples.append((get_path_coverage_CV(p,G), p))
+            path_tuples.append((get_wgtd_path_coverage_CV(p,G,seqs), p))
         path_tuples.sort(key=lambda path: path[0])
         
         curr_path = path_tuples[0][1]
@@ -363,7 +364,9 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
             paths = enum_high_mass_shortest_paths(comp,non_self_loops)
             continue
-        if get_path_coverage_CV(curr_path,G) <= max_CV and \
+        # get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
+        # if get_path_coverage_CV(curr_path,G) <= max_CV and \
+        if get_wgtd_path_coverage_CV(curr_path,G,seqs) <= max_CV and \
         get_unoriented_sorted_str(curr_path) not in non_self_loops:
             
             covs_before_update = [get_cov_from_SPAdes_name(p,G) for p in curr_path]
@@ -382,10 +385,10 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
                 print curr_path
                 print "before", covs_before_update
                 print "after", [get_cov_from_SPAdes_name(p,G) for p in curr_path]
-                print len(comp.nodes()), " nodes remain in component\n"
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) 
                     + "\n" + str(path_nums) + "\n")
             # recalculate paths on the component
+            print len(comp.nodes()), " nodes remain in component\n"
             paths = enum_high_mass_shortest_paths(comp,non_self_loops)
 
 # done peeling
