@@ -1,6 +1,6 @@
 # creates a report on the number of plasmids reported
 # and their alignment relative to some reference 
-INPUT_DIR = /vol/scratch/rozovr/M_res
+INPUT_DIR = /home/nasheran/rozovr/aya/spades3.5_test/M_res/
 TWO_STEP_ASSEM = 0
 REPEAT_RES_1 = 0
 REPEAT_RES_2 = 0
