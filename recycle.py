@@ -36,8 +36,8 @@ def get_unoriented_sorted_str(path):
 def enum_high_mass_shortest_paths(G, seen_paths=[]):
     """ given component subgraph, returns list of paths that
         - is non-redundant (includes) no repeats of same cycle
-        - includes all cycles starting at node n, taking 
-        shortest path (by 1/(length * coverage)) to each of 
+        - includes all shortest paths starting at each node n (assigning 
+        node weights to be 1/(length * coverage)) to each of 
         its predecessors, and returning to n
     """
 
@@ -193,6 +193,11 @@ def parse_user_input():
         help='BAM file result of aligning reads to fasta file -- must be sorted by contig coordinates with samtools', 
         required=False, type=str
         )
+    parser.add_argument('-d','--debug', 
+        help="Toggle DEBUG mode.  [Allowed values: 'T', 'F'] Writes a file listing all" +
+        " paths reported & observed up to each reporting step. Warning: this file may be very large", 
+        required=False, type=str
+        )
     return parser.parse_args()
 
 
@@ -222,6 +227,13 @@ f_cycs_fasta = open(fasta_ofile, 'w')
 # when path is added
 cycs_ofile = root + ext.replace(".fastg", ".cycs.paths_w_cov.txt")
 f_cyc_paths = open(cycs_ofile, 'w')
+DEBUG = False
+
+if args.debug == 'T':
+    DEBUG = True
+    debug_ofile = root + ext.replace(".fastg", ".cycs.dbg.txt")
+    f_debug = open(debug_ofile, 'w')
+    all_paths_seen = {}
 
 ###################################
 # 2a. extract self loop edges from nodes having
@@ -319,10 +331,16 @@ for nd in G.nodes_with_selfloops(): #nodes_with_selfloops()
             self_loops.add((nd,))
             final_paths_dict[name] = (nd,)
             path_count += 1
+            if DEBUG:
+                all_paths_seen[(nd,)]=(nd,)
     to_remove |= set([nd,rc_node(nd)])
 
 for nd in to_remove:
     if nd in G: G.remove_node(nd)
+
+# if DEBUG:
+#     f_debug.write(str(all_paths_seen.keys()) + "\t" + str(all_paths_seen.keys()) + "\n")
+
 
 # H = G.to_undirected()
 
@@ -332,6 +350,13 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
  
     # initialize shortest path set considered
     paths = enum_high_mass_shortest_paths(comp)
+
+    if DEBUG:
+        for p in paths:
+            # don't extract sequence (yet), do keep node order in dict values to limit memory
+            all_paths_seen[get_unoriented_sorted_str(p)] = p # get_seq_from_path(p, seqs)
+        f_debug.write(str(final_paths_dict.values()) + "\t" + str(all_paths_seen.values()) + "\n")
+
 
     # peeling - iterate until no change in path set from 
     # one iteration to next
@@ -351,21 +376,27 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
         # sort the paths by CV and test the lowest CV path for removal 
         # need to use lambda because get_cov needs 2 parameters
         
+        # make tuples of (CV, path)
         path_tuples = []
         for p in paths:
-            # path_tuples.append((get_path_coverage_CV(p,G), p))
             path_tuples.append((get_wgtd_path_coverage_CV(p,G,seqs), p))
-        path_tuples.sort(key=lambda path: path[0])
+        
+        # sort in ascending CV order
+        path_tuples.sort(key=lambda path: path[0]) 
         
         curr_path = path_tuples[0][1]
         if get_total_path_mass(curr_path,G)<1:
+            if DEBUG:
+                for p in paths:
+                    all_paths_seen[get_unoriented_sorted_str(p)] = p
+                f_debug.write(str(final_paths_dict.values()) + "\t" + str(all_paths_seen.values()) + "\n")
+
+
             remove_path_nodes_from_graph(curr_path,comp)
             # recalc. paths since some might have been disrupted
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
             paths = enum_high_mass_shortest_paths(comp,non_self_loops)
             continue
-        # get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
-        # if get_path_coverage_CV(curr_path,G) <= max_CV and \
         if get_wgtd_path_coverage_CV(curr_path,G,seqs) <= max_CV and \
         get_unoriented_sorted_str(curr_path) not in non_self_loops:
             
@@ -389,6 +420,11 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
                     + "\n" + str(path_nums) + "\n")
             # recalculate paths on the component
             print len(comp.nodes()), " nodes remain in component\n"
+            if DEBUG:
+                for p in paths:
+                    all_paths_seen[get_unoriented_sorted_str(p)] = p
+                f_debug.write(str(final_paths_dict.values()) + "\t" + str(all_paths_seen.values()) + "\n")
+
             paths = enum_high_mass_shortest_paths(comp,non_self_loops)
 
 # done peeling
