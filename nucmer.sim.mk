@@ -1,6 +1,7 @@
 # creates a report on the number of plasmids reported
 # and their alignment relative to some reference
 REF_CNT = 100
+CV = 0.25
 PARENT_DIR = /home/nasheran/rozovr/recycle_paper_data
 INPUT_DIR = $(PARENT_DIR)/ref_$(REF_CNT)
 TWO_STEP_ASSEM = 0
@@ -27,7 +28,11 @@ else
 endif
 
 
-all: $(INPUT).cycs.dbl.fasta $(INPUT).nucmer $(INPUT).nucmer.summary
+all: $(INPUT).cycs.fasta $(INPUT).cycs.dbl.fasta $(INPUT).nucmer $(INPUT).nucmer$(CV).summary
+
+# 0) run recycler on input
+$(INPUT).cycs.fasta: $(INPUT).fastg
+	python ~/recycle/recycle.py -g $(INPUT).fastg -s $(INPUT).fasta -m $(CV) 
 
 # 1) concat output cycles to self:
 $(INPUT).cycs.dbl.fasta: $(INPUT).cycs.fasta
@@ -38,16 +43,17 @@ $(INPUT).nucmer: $(INPUT).cycs.dbl.fasta
 	/home/gaga/rozovr/MUMmer3.23/nucmer $(REF) $^ -p $@
 
 # 3) parse alignments, write out summary 
-$(INPUT).nucmer.summary: $(INPUT).nucmer.delta 
+$(INPUT).nucmer$(CV).summary: $(INPUT).nucmer.delta 
 	touch $(INPUT).nucmer.summary
 	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT).nucmer.delta | \
-	awk '$$10==100.00 && $$15==100.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT).nucmer.summary
+	awk '$$10==100.00 && $$15==100.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT).nucmer$(CV).summary
 	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT).nucmer.delta | \
-	awk '$$10==100.00 && $$15>=90.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT).nucmer.summary
+	awk '$$10==100.00 && $$15>=90.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT).nucmer$(CV).summary
 	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT).nucmer.delta | \
-	awk '$$10==100.00 && $$15>=80.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT).nucmer.summary
+	awk '$$10==100.00 && $$15>=80.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT).nucmer$(CV).summary
 
 clean:
-	rm $(INPUT).cycs.dbl.fasta
-	rm $(INPUT).nucmer.delta
-	rm $(INPUT).nucmer.summary
+	rm -f $(INPUT).cycs.fasta
+	rm -f $(INPUT).cycs.dbl.fasta
+	rm -f $(INPUT).nucmer.delta
+	rm -f $(INPUT).nucmer$(CV).summary
