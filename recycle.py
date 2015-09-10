@@ -80,62 +80,89 @@ def enum_high_mass_shortest_paths(G, seen_paths=[]):
     return paths
 
 
-def update_node_coverage_vals(path, G, comp, seqs):
+def update_node_coverage_vals(path, G, comp, seqs, max_k_val=55):
     """ given a path, updates node coverage values
         assuming mean observed path coverage is used
     """
+    # path_copy = list(path)
+    # tot = get_total_path_mass(path,G)
+    # mean_cov = tot / get_total_path_length(path, seqs)
+    # path_determining_nodes = [] # nodes that can be used to est. cov.
+    # determined_mean = 0
+
+    # for nd in path_copy:
+    #     nd2 = rc_node(nd)        
+    #     if G.in_degree(nd)==1 and G.out_degree(nd)==1 and\
+    #         G.in_degree(nd2)==1 and G.out_degree(nd2)==1:
+    #             path_determining_nodes.append(nd)
+    # if len(path_determining_nodes)>0:
+    #     determined_mean = np.mean([get_cov_from_SPAdes_name(p,G) for p in path_determining_nodes])
+    #     for nd in path_copy:
+    #         nd2 = rc_node(nd)
+    #         if nd in G and nd in comp:
+    #             new_cov = get_cov_from_SPAdes_name(nd,G) - determined_mean
+    #             if new_cov <= 0: 
+    #                 G.remove_node(nd)
+    #                 comp.remove_node(nd)
+    #             else:
+    #                 G.add_node(nd, cov=new_cov)
+    #                 comp.add_node(nd, cov=new_cov)
+    #         if nd2 in G and nd2 in comp:
+    #             new_cov = get_cov_from_SPAdes_name(nd2,G) - determined_mean
+    #             if new_cov <= 0:
+    #                 G.remove_node(nd2)
+    #                 comp.remove_node(nd2)
+    #             else:
+    #                 G.add_node(nd2, cov=new_cov)
+    #                 comp.add_node(nd2, cov=new_cov)
+    # else: 
+    #     for nd in path_copy:
+    #         nd2 = rc_node(nd)
+    #         if nd in G and nd in comp:
+    #             new_cov = get_cov_from_SPAdes_name(nd,G) - mean_cov
+    #             if new_cov <= 0: 
+    #                 G.remove_node(nd)
+    #                 comp.remove_node(nd)
+    #             else:
+    #                 G.add_node(nd, cov=new_cov)
+    #                 comp.add_node(nd, cov=new_cov)
+    #         if nd2 in G and nd2 in comp:
+    #             new_cov = get_cov_from_SPAdes_name(nd2,G) - mean_cov
+    #             if new_cov <= 0:
+    #                 G.remove_node(nd2)
+    #                 comp.remove_node(nd2)
+    #             else:
+    #                 G.add_node(nd2, cov=new_cov)
+    #                 comp.add_node(nd2, cov=new_cov)
+    
     path_copy = list(path)
-    tot = get_total_path_mass(path,G)
-    mean_cov = tot / get_total_path_length(path, seqs)
-    path_determining_nodes = [] # nodes that can be used to est. cov.
-    determined_mean = 0
+    covs = np.array([get_cov_from_SPAdes_name(n,G) for n in path])
+    # if len(covs)< 2: return 0.000001
+    # mean = np.mean(covs)
+    wgts = np.array([(get_length_from_SPAdes_name(n)-max_k_val) for n in path])
+    tot_len = get_total_path_length(path, seqs)
+    wgts = np.multiply(wgts, 1./tot_len)
+    mean_cov = np.average(covs, weights = wgts)
 
     for nd in path_copy:
-        nd2 = rc_node(nd)        
-        if G.in_degree(nd)==1 and G.out_degree(nd)==1 and\
-            G.in_degree(nd2)==1 and G.out_degree(nd2)==1:
-                path_determining_nodes.append(nd)
-    if len(path_determining_nodes)>0:
-        determined_mean = np.mean([get_cov_from_SPAdes_name(p,G) for p in path_determining_nodes])
-        for nd in path_copy:
-            nd2 = rc_node(nd)
-            if nd in G and nd in comp:
-                new_cov = get_cov_from_SPAdes_name(nd,G) - determined_mean
-                if new_cov <= 0: 
-                    G.remove_node(nd)
-                    comp.remove_node(nd)
-                else:
-                    G.add_node(nd, cov=new_cov)
-                    comp.add_node(nd, cov=new_cov)
-            if nd2 in G and nd2 in comp:
-                new_cov = get_cov_from_SPAdes_name(nd2,G) - determined_mean
-                if new_cov <= 0:
-                    G.remove_node(nd2)
-                    comp.remove_node(nd2)
-                else:
-                    G.add_node(nd2, cov=new_cov)
-                    comp.add_node(nd2, cov=new_cov)
-    else: 
-        for nd in path_copy:
-            nd2 = rc_node(nd)
-            if nd in G and nd in comp:
-                new_cov = get_cov_from_SPAdes_name(nd,G) - mean_cov
-                if new_cov <= 0: 
-                    G.remove_node(nd)
-                    comp.remove_node(nd)
-                else:
-                    G.add_node(nd, cov=new_cov)
-                    comp.add_node(nd, cov=new_cov)
-            if nd2 in G and nd2 in comp:
-                new_cov = get_cov_from_SPAdes_name(nd2,G) - mean_cov
-                if new_cov <= 0:
-                    G.remove_node(nd2)
-                    comp.remove_node(nd2)
-                else:
-                    G.add_node(nd2, cov=new_cov)
-                    comp.add_node(nd2, cov=new_cov)
-    # clean_end_nodes_iteratively(G)
-    # clean_end_nodes_iteratively(comp)    
+        nd2 = rc_node(nd)
+        if nd in G and nd in comp:
+            new_cov = get_cov_from_SPAdes_name(nd,G) - mean_cov
+            if new_cov <= 0: 
+                G.remove_node(nd)
+                comp.remove_node(nd)
+            else:
+                G.add_node(nd, cov=new_cov)
+                comp.add_node(nd, cov=new_cov)
+        if nd2 in G and nd2 in comp:
+            new_cov = get_cov_from_SPAdes_name(nd2,G) - mean_cov
+            if new_cov <= 0:
+                G.remove_node(nd2)
+                comp.remove_node(nd2)
+            else:
+                G.add_node(nd2, cov=new_cov)
+                comp.add_node(nd2, cov=new_cov)
+    
 
 def clean_end_nodes_iteratively(G):
     while(True):
@@ -367,11 +394,13 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
     # from the component or added a new path to final paths
     while(path_count!=last_path_count or\
         len(comp.nodes())!=last_node_count):
+
         last_node_count = len(comp.nodes())
         last_path_count = path_count
 
         if(len(paths)==0): break
 
+        # print paths
         # using initial set of paths or set from last iteration
         # sort the paths by CV and test the lowest CV path for removal 
         # need to use lambda because get_cov needs 2 parameters
@@ -380,6 +409,7 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
         path_tuples = []
         for p in paths:
             # path_tuples.append((get_path_coverage_CV(p,G), p))
+            # print get_wgtd_path_coverage_CV(p,G,seqs), p
             path_tuples.append((get_wgtd_path_coverage_CV(p,G,seqs), p))
         
         # sort in ascending CV order
@@ -392,7 +422,6 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
                     all_paths_seen[get_unoriented_sorted_str(p)] = p
                 f_debug.write(str(final_paths_dict.values()) + "\t" + str(all_paths_seen.values()) + "\n")
 
-
             remove_path_nodes_from_graph(curr_path,comp)
             # recalc. paths since some might have been disrupted
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
@@ -402,7 +431,7 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
         # if get_path_coverage_CV(curr_path,G) <= max_CV and \
         if get_wgtd_path_coverage_CV(curr_path,G,seqs) <= max_CV and \
         get_unoriented_sorted_str(curr_path) not in non_self_loops:
-            
+
             covs_before_update = [get_cov_from_SPAdes_name(p,G) for p in curr_path]
             cov_val_before_update = get_total_path_mass(curr_path,G) /\
              get_total_path_length(curr_path, seqs)

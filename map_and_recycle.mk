@@ -3,7 +3,6 @@ INPUT_DIR = /vol/scratch/rozovr/M_res/
 READS_DIR = /home/gaga/rozovr/recycle_paper_data/
 
 
-
 all: fetch_scripts
 
 

@@ -88,7 +88,7 @@ def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
     mean = np.average(covs, weights = wgts)
     # try:
     # diffs = covs - mean    
-    std = np.dot(wgts,(covs-mean)**2)
+    std = np.sqrt(np.dot(wgts,(covs-mean)**2))
     # except TypeError:
     #     print type(wgts), type(diffs**2), wgts, covs-mean
     return std/mean
