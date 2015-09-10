@@ -83,9 +83,9 @@ def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
     if len(covs)< 2: return 0.000001
     # mean = np.mean(covs)
     wgts = np.array([(get_length_from_SPAdes_name(n)-max_k_val) for n in path])
-    mean = np.average(covs, weights = wgts)
     tot_len = get_total_path_length(path, seqs)
     wgts = np.multiply(wgts, 1./tot_len)
+    mean = np.average(covs, weights = wgts)
     # try:
     # diffs = covs - mean    
     std = np.dot(wgts,(covs-mean)**2)

@@ -45,6 +45,7 @@ $(INPUT).nucmer: $(INPUT).cycs.dbl.fasta
 # 3) parse alignments, write out summary 
 $(INPUT).nucmer$(CV).summary: $(INPUT).nucmer.delta 
 	touch $(INPUT).nucmer.summary
+	grep '>' -c $(INPUT).cycs.fasta >> $(INPUT).nucmer$(CV).summary
 	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT).nucmer.delta | \
 	awk '$$10==100.00 && $$15==100.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT).nucmer$(CV).summary
 	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT).nucmer.delta | \

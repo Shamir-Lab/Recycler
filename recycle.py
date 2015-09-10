@@ -379,6 +379,7 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
         # make tuples of (CV, path)
         path_tuples = []
         for p in paths:
+            # path_tuples.append((get_path_coverage_CV(p,G), p))
             path_tuples.append((get_wgtd_path_coverage_CV(p,G,seqs), p))
         
         # sort in ascending CV order
@@ -397,6 +398,8 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
             paths = enum_high_mass_shortest_paths(comp,non_self_loops)
             continue
+
+        # if get_path_coverage_CV(curr_path,G) <= max_CV and \
         if get_wgtd_path_coverage_CV(curr_path,G,seqs) <= max_CV and \
         get_unoriented_sorted_str(curr_path) not in non_self_loops:
             
