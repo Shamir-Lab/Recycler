@@ -28,7 +28,7 @@ else
 endif
 
 
-all: $(INPUT).cycs.fasta $(INPUT).cycs.dbl.fasta $(INPUT).nucmer $(INPUT).nucmer$(CV).summary
+all: $(INPUT).cycs.fasta $(INPUT).cycs.dbl.fasta $(INPUT).nucmer.delta $(INPUT).nucmer$(CV).summary
 
 # 0) run recycler on input
 $(INPUT).cycs.fasta: $(INPUT).fastg
@@ -39,12 +39,11 @@ $(INPUT).cycs.dbl.fasta: $(INPUT).cycs.fasta
 	python ~/recycle/concat_seq_to_self.py -i $(INPUT).cycs.fasta
 
 # 2) run nucmer
-$(INPUT).nucmer: $(INPUT).cycs.dbl.fasta
-	/home/gaga/rozovr/MUMmer3.23/nucmer $(REF) $^ -p $@
+$(INPUT).nucmer.delta: $(INPUT).cycs.dbl.fasta
+	/home/gaga/rozovr/MUMmer3.23/nucmer $(REF) $^ -p $(INPUT).nucmer
 
-# 3) parse alignments, write out summary 
-$(INPUT).nucmer$(CV).summary: $(INPUT).nucmer.delta 
-	touch $(INPUT).nucmer$(CV).summary
+# 3) parse alignments, write out summaries
+$(INPUT).nucmer$(CV).summary $(INPUT).hit_nodes$(CV).txt:  $(INPUT).nucmer.delta 
 	grep '>' -c $(INPUT).cycs.fasta >> $(INPUT).nucmer$(CV).summary
 	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT).nucmer.delta | \
 	awk '$$10==100.00 && $$15==100.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT).nucmer$(CV).summary
@@ -52,6 +51,12 @@ $(INPUT).nucmer$(CV).summary: $(INPUT).nucmer.delta
 	awk '$$10==100.00 && $$15>=90.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT).nucmer$(CV).summary
 	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT).nucmer.delta | \
 	awk '$$10==100.00 && $$15>=80.00' | cut -d'|' --complement -f 1-6 | uniq | wc -l >> $(INPUT).nucmer$(CV).summary
+	/home/gaga/rozovr/MUMmer3.23/show-coords -r -c -l $(INPUT).nucmer.delta  | \
+	awk '$$10==100.00 && $$15>=80.00' | cut -d'|' --complement -f 1-6 | cut -f2 >> $(INPUT).hit_nodes$(CV).txt
+
+# 4) tally hits by different ranges/properties
+$(INPUT).$(CV).tally: $(INPUT).cycs.fasta $(INPUT).cycs.paths_w_cov.txt $(INPUT).hit_nodes$(CV).txt
+	echo python ~/recycle/tally_hits.py -p $(INPUT) -n $(INPUT).hit_nodes$(CV).txt > $@
 
 clean:
 	rm -f $(INPUT).cycs.fasta

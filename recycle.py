@@ -51,7 +51,7 @@ def enum_high_mass_shortest_paths(G, seen_paths=[]):
     paths = []
     # use add_edge to assign edge weights to be 1/mass of starting node
     for e in G.edges():
-        G.add_edge(e[0], e[1], cost = 1./get_SPAdes_base_mass(G, e[0]))
+        G.add_edge(e[0], e[1], cost = 1./get_spades_base_mass(G, e[0]))
 
     for node in nodes:
         if node[-1] == "'": continue
@@ -89,7 +89,7 @@ def update_node_coverage_vals(path, G, comp, seqs, max_k_val=55):
     covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
     # if len(covs)< 2: return 0.000001
     # mean = np.mean(covs)
-    wgts = np.array([(get_length_from_SPAdes_name(n)-max_k_val) for n in path])
+    wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])
     tot_len = get_total_path_length(path, seqs)
     wgts = np.multiply(wgts, 1./tot_len)
     mean_cov = np.average(covs, weights = wgts)
@@ -150,7 +150,7 @@ def parse_user_input():
         'recycle extracts cycles likely to be plasmids from metagenome and genome assembly graphs'
         )
     parser.add_argument('-g','--graph',
-     help='(SPAdes 3.50+) FASTG file to process [recommended: before_rr.fastg]',
+     help='(spades 3.50+) FASTG file to process [recommended: before_rr.fastg]',
      required=True, type=str
      )
     parser.add_argument('-s',
@@ -302,7 +302,7 @@ to_remove = set([])
 
 path_count = 0
 for nd in G.nodes_with_selfloops(): #nodes_with_selfloops()
-    if get_length_from_SPAdes_name(nd) >= min_length:
+    if get_length_from_spades_name(nd) >= min_length:
         if (rc_node(nd),) not in self_loops:
             name = get_spades_type_name(path_count, (nd,), seqs, G)
             self_loops.add((nd,))
@@ -385,7 +385,7 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
             covs_before_update = [get_cov_from_spades_name_and_graph(p,G) for p in curr_path]
             cov_val_before_update = get_total_path_mass(curr_path,G) /\
              get_total_path_length(curr_path, seqs)
-            path_nums = [get_num_from_SPAdes_name(p) for p in curr_path]
+            path_nums = [get_num_from_spades_name(p) for p in curr_path]
             update_node_coverage_vals(curr_path, G, comp, seqs)
             # clean_end_nodes_iteratively(comp)
             name = get_spades_type_name(path_count,curr_path, seqs, G, cov_val_before_update)
