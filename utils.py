@@ -40,30 +40,33 @@ def rc_seq(dna):
     rev = reversed(dna)
     return "".join([complements[i] for i in rev])
 
-def get_num_from_SPAdes_name(name):
+def get_num_from_spades_name(name):
     name_parts = name.split("_")
     contig_length = name_parts[1]
     return int(contig_length)      
 
-def get_length_from_SPAdes_name(name):
+def get_length_from_spades_name(name):
     name_parts = name.split("_")
     contig_length = name_parts[3]
     return int(contig_length)
 
-def get_cov_from_SPAdes_name(name,G):
+def get_cov_from_spades_name(name):
+    name_parts = name.split("_")
+    cov = name_parts[5]
+    if cov[-1]=="'": cov=cov[:-1]
+    return float(cov)
+
+def get_cov_from_spades_name_and_graph(name,G):
     if name not in G:
         return 0
     if 'cov' in G.node[name]:
         return G.node[name]['cov']
     else:
-        name_parts = name.split("_")
-        cov = name_parts[5]
-        if cov[-1]=="'": cov=cov[:-1]
-        return float(cov)
+        get_cov_from_spades_name(name)
 
-def get_SPAdes_base_mass(G, name):
-    length = get_length_from_SPAdes_name(name)
-    coverage = get_cov_from_SPAdes_name(name,G)
+def get_spades_base_mass(G, name):
+    length = get_length_from_spades_name(name)
+    coverage = get_cov_from_spades_name(name,G)
     return length * coverage
 
 def get_seq_from_path(path, seqs, max_k_val=55):
@@ -74,15 +77,15 @@ def get_seq_from_path(path, seqs, max_k_val=55):
     return seq
 
 def get_total_path_length(path, seqs):
-    # return sum([get_length_from_SPAdes_name(n) for n in path])
+    # return sum([get_length_from_spades_name(n) for n in path])
     seq = get_seq_from_path(path, seqs)
     return len(seq)
 
 def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
-    covs = np.array([get_cov_from_SPAdes_name(n,G) for n in path])
+    covs = np.array([get_cov_from_spades_name(n,G) for n in path])
     if len(covs)< 2: return 0.000001
     # mean = np.mean(covs)
-    wgts = np.array([(get_length_from_SPAdes_name(n)-max_k_val) for n in path])
+    wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])
     tot_len = get_total_path_length(path, seqs)
     wgts = np.multiply(wgts, 1./tot_len)
     mean = np.average(covs, weights = wgts)
@@ -95,7 +98,7 @@ def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
 
 
 def get_path_coverage_CV(path,G):
-    covs = np.array([get_cov_from_SPAdes_name(n,G) for n in path])
+    covs = np.array([get_cov_from_spades_name(n,G) for n in path])
     if len(covs)< 2: return 0.000001
     mean = np.mean(covs)
     std = np.std(covs)
@@ -103,8 +106,8 @@ def get_path_coverage_CV(path,G):
     return std/mean
 
 def get_total_path_mass(path,G):
-    return sum([get_length_from_SPAdes_name(p) * \
-        get_cov_from_SPAdes_name(p,G) for p in path])
+    return sum([get_length_from_spades_name(p) * \
+        get_cov_from_spades_name(p,G) for p in path])
 
 def get_fasta_stranded_seq(seqs, seq_name):
     """ gets sequence corresponding 

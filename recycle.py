@@ -86,7 +86,7 @@ def update_node_coverage_vals(path, G, comp, seqs, max_k_val=55):
     """
     
     path_copy = list(path)
-    covs = np.array([get_cov_from_SPAdes_name(n,G) for n in path])
+    covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
     # if len(covs)< 2: return 0.000001
     # mean = np.mean(covs)
     wgts = np.array([(get_length_from_SPAdes_name(n)-max_k_val) for n in path])
@@ -97,7 +97,7 @@ def update_node_coverage_vals(path, G, comp, seqs, max_k_val=55):
     for nd in path_copy:
         nd2 = rc_node(nd)
         if nd in G and nd in comp:
-            new_cov = get_cov_from_SPAdes_name(nd,G) - mean_cov
+            new_cov = get_cov_from_spades_name_and_graph(nd,G) - mean_cov
             if new_cov <= 0: 
                 G.remove_node(nd)
                 comp.remove_node(nd)
@@ -105,7 +105,7 @@ def update_node_coverage_vals(path, G, comp, seqs, max_k_val=55):
                 G.add_node(nd, cov=new_cov)
                 comp.add_node(nd, cov=new_cov)
         if nd2 in G and nd2 in comp:
-            new_cov = get_cov_from_SPAdes_name(nd2,G) - mean_cov
+            new_cov = get_cov_from_spades_name_and_graph(nd2,G) - mean_cov
             if new_cov <= 0:
                 G.remove_node(nd2)
                 comp.remove_node(nd2)
@@ -382,7 +382,7 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
         if get_wgtd_path_coverage_CV(curr_path,G,seqs) <= max_CV and \
         get_unoriented_sorted_str(curr_path) not in non_self_loops:
 
-            covs_before_update = [get_cov_from_SPAdes_name(p,G) for p in curr_path]
+            covs_before_update = [get_cov_from_spades_name_and_graph(p,G) for p in curr_path]
             cov_val_before_update = get_total_path_mass(curr_path,G) /\
              get_total_path_length(curr_path, seqs)
             path_nums = [get_num_from_SPAdes_name(p) for p in curr_path]
@@ -397,7 +397,7 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
             if get_total_path_length(curr_path, seqs)>=min_length:
                 print curr_path
                 print "before", covs_before_update
-                print "after", [get_cov_from_SPAdes_name(p,G) for p in curr_path]
+                print "after", [get_cov_from_spades_name_and_graph(p,G) for p in curr_path]
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) 
                     + "\n" + str(path_nums) + "\n")
             # recalculate paths on the component
