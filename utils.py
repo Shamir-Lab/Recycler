@@ -62,7 +62,7 @@ def get_cov_from_spades_name_and_graph(name,G):
     if 'cov' in G.node[name]:
         return G.node[name]['cov']
     else:
-        get_cov_from_spades_name(name)
+        return get_cov_from_spades_name(name)
 
 def get_spades_base_mass(G, name):
     length = get_length_from_spades_name(name)
