@@ -1,16 +1,16 @@
 from utils import *
 import argparse
-def count_property_range_hits(prop, min_val, max_val, node_dict, hits, overall_max):
+def count_property_range_hits(prop, node_dict, hits):
 	""" picks which values to use in tuples based on property
 		counts vals having min_val <= val < max_val
 	 	unless max_val == overall_max, where min_val <= val <= max_val 
 	 	is used instead
 	"""
-	res = (0, 0, 0)
+	res = []
 	# sets tuple position to use in dict value
 	switcher = {
         "length": (0,(0,4000,8000,12000,16000,20000)),
-        "steps": (1,(0,2,4,8,16,32,64)),
+        "steps": (1,(0,2,4,8,16,32)),
         "cov": (2,(1,10,100,1000,10000,100000))
     }
 	if prop not in switcher:
@@ -18,18 +18,23 @@ def count_property_range_hits(prop, min_val, max_val, node_dict, hits, overall_m
 	tup_pos = switcher[prop][0]
 	node_cnt = 0
 	pos_cnt = 0
-	for node in node_dict.keys():
-		val = node_dict[node][tup_pos]
-		if max_val < overall_max:
-			range_test_val = (min_val <= val < max_val)
-		else:
-			range_test_val = (min_val <= val <= max_val)
-		# print "range bool is", range_test_val
-		if range_test_val:
-			node_cnt += 1
-			if node in hits: pos_cnt += 1
-	if node_cnt > 0:
-		res = (pos_cnt, node_cnt, round(float(pos_cnt)/node_cnt,2))
+	for ind in range(len(switcher[prop][1])-1):
+		min_val = switcher[prop][1][ind]
+		max_val = switcher[prop][1][ind+1]
+		for node in node_dict.keys():
+			val = node_dict[node][tup_pos]
+			if ind < len(switcher[prop][1])-2:
+				range_test_val = (min_val <= val < max_val)
+			else:
+				range_test_val = (min_val <= val <= max_val)
+			# print "range bool is", range_test_val
+			if range_test_val:
+				node_cnt += 1
+				if node in hits: pos_cnt += 1
+		if node_cnt > 0:
+			res.append( (pos_cnt, node_cnt, round(float(pos_cnt)/node_cnt,2)))
+		node_cnt = 0
+		pos_cnt = 0
 	return res
 
 def parse_user_input():
@@ -47,8 +52,6 @@ def parse_user_input():
          )
     
     return parser.parse_args()
-
-
 
 
 # inputs: paths_w_cov.txt file, 
@@ -96,14 +99,9 @@ for line in lines:
 	hits.add(line.rstrip())
 
 
-print count_property_range_hits("length", 0, 4000, rnode_dict, hits, 20000)
-print count_property_range_hits("length", 4001, 8000, rnode_dict, hits, 20000)
-print count_property_range_hits("length", 8001, 12000, rnode_dict, hits, 20000)
-print count_property_range_hits("length", 12001, 16000, rnode_dict, hits, 20000)
-print count_property_range_hits("length", 16001, 20000, rnode_dict, hits, 20000)
-
-# print count_property_range_hits("length", 5000, 9999, rnode_dict, 20000)
-
+print "length: ", count_property_range_hits("length", rnode_dict, hits)
+print "steps: ", count_property_range_hits("steps", rnode_dict, hits)
+print "coverage: ", count_property_range_hits("cov", rnode_dict, hits)
 
 
 

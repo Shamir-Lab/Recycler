@@ -64,3 +64,4 @@ clean:
 	rm -f $(INPUT).nucmer.delta
 	rm -f $(INPUT).nucmer$(CV).summary
 	rm -f $(INPUT).hit_nodes$(CV).txt
+	rm -f $(INPUT).$(CV).tally
