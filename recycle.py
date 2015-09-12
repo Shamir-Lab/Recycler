@@ -166,15 +166,15 @@ def parse_user_input():
      '[default: 0.25, higher--> less restrictive]; Note: not a requisite for selection',
       required=False, default=1./4, type=float
       )
-    parser.add_argument('-b','--bam', 
-        help='BAM file result of aligning reads to fasta file -- must be sorted by contig coordinates with samtools', 
+    parser.add_argument('-b','--bamp', 
+        help='prefix to BAM files resulting from aligning reads to fasta file', 
         required=False, type=str
         )
-    parser.add_argument('-d','--debug', 
-        help="Toggle DEBUG mode.  [Allowed values: 'T', 'F'] Writes a file listing all" +
-        " paths reported & observed up to each reporting step. Warning: this file may be very large", 
-        required=False, type=str
-        )
+    # parser.add_argument('-d','--debug', 
+    #     help="Toggle DEBUG mode.  [Allowed values: 'T', 'F'] Writes a file listing all" +
+    #     " paths reported & observed up to each reporting step. Warning: this file may be very large", 
+    #     required=False, type=str
+    #     )
     return parser.parse_args()
 
 
@@ -206,66 +206,66 @@ cycs_ofile = root + ext.replace(".fastg", ".cycs.paths_w_cov.txt")
 f_cyc_paths = open(cycs_ofile, 'w')
 DEBUG = False
 
-if args.debug == 'T':
-    DEBUG = True
-    debug_ofile = root + ext.replace(".fastg", ".cycs.dbg.txt")
-    f_debug = open(debug_ofile, 'w')
-    all_paths_seen = {}
+# if args.debug == 'T':
+#     DEBUG = True
+#     debug_ofile = root + ext.replace(".fastg", ".cycs.dbg.txt")
+#     f_debug = open(debug_ofile, 'w')
+#     all_paths_seen = {}
 
 ###################################
 # 2a. extract self loop edges from nodes having
 # AND-types == outies on both ends at most 500 bp away from end
 
-# bam_name = "/vol/scratch/rozovr/M_res/AND_type_filtered.bam" #args.bam
-# samfile = pysam.AlignmentFile(bam_name)
+ands_file = args.bamp + '.fasta.ands.srt.bam'
+samfile = pysam.AlignmentFile(ands_file)
 
-# print "before adding, ", len(G.edges()), " edges"
+print "before adding, ", len(G.edges()), " edges"
 
-# for node in G.nodes():
-#     try:
-#         hits = samfile.fetch(node)
-#         num_hits = sum(1 for _ in hits)
+for node in G.nodes():
+    try:
+        hits = samfile.fetch(node)
+        num_hits = sum(1 for _ in hits)
 
-#         # print len(hits), hits 
-#         if num_hits>1:
-#             G.add_edge(node,node)
-#             G.add_edge(rc_node(node),rc_node(node))
-#     except ValueError:
-#         continue
+        # print len(hits), hits 
+        if num_hits>1:
+            G.add_edge(node,node)
+            G.add_edge(rc_node(node),rc_node(node))
+    except ValueError:
+        continue
 
-# print "after adding, ", len(G.edges()), " edges"
+print "after adding, ", len(G.edges()), " edges"
 
 
-# # next use contig_joining_type to connect
-# # sink nodes having more than one pair of reads
-# # connecting them
-# bam_name = "/vol/scratch/rozovr/M_res/contig_joining_type.srt.bam"
-# samfile = pysam.AlignmentFile(bam_name)
-# print "before adding, ", len(G.edges()), " edges"
+# next use contig_joining_type to connect
+# sink nodes having more than one pair of reads
+# connecting them
+joins_file = args.bamp + '.fasta.joins.srt.bam'
+samfile = pysam.AlignmentFile(joins_file)
+print "before adding, ", len(G.edges()), " edges"
 
-# sinks = []
-# hit_cnts = {}
-# for node in G.nodes():
-#     if G.out_degree(node)==0:
-#         sinks.append(node)
-# # print len(sinks), " sinks: ", sinks
-# for node in sinks:
-#     try:
-#         hits = samfile.fetch(node)
+sinks = []
+hit_cnts = {}
+for node in G.nodes():
+    if G.out_degree(node)==0:
+        sinks.append(node)
+# print len(sinks), " sinks: ", sinks
+for node in sinks:
+    try:
+        hits = samfile.fetch(node)
         
-#         for hit in samfile.fetch(node):
-#             nref = samfile.getrname(hit.next_reference_id)
+        for hit in samfile.fetch(node):
+            nref = samfile.getrname(hit.next_reference_id)
             
-#             if nref in sinks: 
-#                 hit_cnts[(node,nref)] = hit_cnts.get((node,nref),0)+1
-#                 if hit_cnts[(node,nref)]>1:
-#                     G.add_edge(node, nref)
-#                     G.add_edge(rc_node(nref), rc_node(node))
+            if nref in sinks: 
+                hit_cnts[(node,nref)] = hit_cnts.get((node,nref),0)+1
+                if hit_cnts[(node,nref)]>1:
+                    G.add_edge(node, nref)
+                    G.add_edge(rc_node(nref), rc_node(node))
 
-#     except ValueError:
-#         continue
+    except ValueError:
+        continue
             
-# print "after adding, ", len(G.edges()), " edges"
+print "after adding, ", len(G.edges()), " edges"
 
 
 # 2b. get subgraph defined by component fasta

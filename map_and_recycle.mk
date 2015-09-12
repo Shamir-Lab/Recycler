@@ -1,7 +1,7 @@
 
 # INPUT_DIR = /home/nasheran/ayabrown/trimmed_reads/M_res/
 
-READS_DIR = /home/gaga/rozovr/recycle_paper_data/
+READS_DIR = /home/nasheran/rozovr/recycle_paper_data/
 REF_CNT = 100
 INPUT_DIR = $(READS_DIR)/ref_$(REF_CNT)
 INPUT1 = before_rr.fasta
@@ -11,13 +11,14 @@ all: fetch_joins fetch_ands $(INPUT_DIR)/$(INPUT1).bwt \
 	$(INPUT_DIR)/$(INPUT1).sa $(INPUT_DIR)/$(INPUT1) \
 	$(INPUT_DIR)/reads_to_$(INPUT1).bam \
 	$(INPUT_DIR)/reads_to_$(INPUT1).joins.bam \
+	$(INPUT_DIR)/reads_to_$(INPUT1).joins.srt.bam \
+	$(INPUT_DIR)/reads_to_$(INPUT1).ands.srt.bam \
 	$(INPUT_DIR)/reads_to_$(INPUT1).ands.bam
 
 
 #### fetch scripts used for processing bam file ####
 # output bams used either for 2 step assembly or input
 # to recycler
-# fetch_scripts: fetch_joins fetch_ands
 
 fetch_joins: extract_contig_joining_pairs.c
 	gcc -o $@ $^ -L. -lbam -lz
@@ -37,21 +38,19 @@ $(INPUT_DIR)/reads_to_$(INPUT1).bam: $(INPUT_DIR)/$(INPUT1).bwt $(INPUT_DIR)/$(I
 $(INPUT_DIR)/reads_to_$(INPUT1).joins.bam: $(INPUT_DIR)/reads_to_$(INPUT1).bam
 	fetch_joins $^ $@
 
+$(INPUT_DIR)/reads_to_$(INPUT1).joins.srt.bam: $(INPUT_DIR)/reads_to_$(INPUT1).joins.bam
+	samtools sort $(INPUT_DIR)/reads_to_$(INPUT1).joins.bam $(INPUT_DIR)/reads_to_$(INPUT1).joins.srt
+	samtools index $@
+
 $(INPUT_DIR)/reads_to_$(INPUT1).ands.bam: $(INPUT_DIR)/reads_to_$(INPUT1).bam
 	fetch_ands $^ $@
 
-
-
-
-
-
-
-
-
-
-
-
-
+$(INPUT_DIR)/reads_to_$(INPUT1).ands.srt.bam: $(INPUT_DIR)/reads_to_$(INPUT1).ands.bam
+	samtools sort $(INPUT_DIR)/reads_to_$(INPUT1).ands.bam $(INPUT_DIR)/reads_to_$(INPUT1).ands.srt
+	samtools index $@
 
 clean:
-	rm fetch_*
+	rm -f $(INPUT_DIR)/reads_to_$(INPUT1)*.bam
+	rm -f fetch_joins fetch_ands
+	rm -f $(INPUT_DIR)/$(INPUT1).*
+
