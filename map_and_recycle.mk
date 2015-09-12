@@ -52,5 +52,4 @@ $(INPUT_DIR)/reads_to_$(INPUT1).ands.srt.bam: $(INPUT_DIR)/reads_to_$(INPUT1).an
 clean:
 	rm -f $(INPUT_DIR)/reads_to_$(INPUT1)*.bam
 	rm -f fetch_joins fetch_ands
-	rm -f $(INPUT_DIR)/$(INPUT1).*
 
