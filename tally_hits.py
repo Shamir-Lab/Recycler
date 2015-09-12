@@ -9,13 +9,13 @@ def count_property_range_hits(prop, min_val, max_val, node_dict, hits, overall_m
 	res = (0, 0, 0)
 	# sets tuple position to use in dict value
 	switcher = {
-        "length": 0,
-        "steps": 1,
-        "cov": 2
+        "length": (0,(0,4000,8000,12000,16000,20000)),
+        "steps": (1,(0,2,4,8,16,32,64)),
+        "cov": (2,(1,10,100,1000,10000,100000))
     }
 	if prop not in switcher:
 		return res
-	tup_pos = switcher[prop]
+	tup_pos = switcher[prop][0]
 	node_cnt = 0
 	pos_cnt = 0
 	for node in node_dict.keys():
