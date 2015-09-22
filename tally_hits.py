@@ -1,5 +1,7 @@
 from utils import *
 import argparse
+import numpy as np
+
 def count_property_range_hits(prop, node_dict, hits):
 	""" picks which values to use in tuples based on property
 		counts vals having min_val <= val < max_val
@@ -11,7 +13,8 @@ def count_property_range_hits(prop, node_dict, hits):
 	switcher = {
         "length": (0,(0,4000,8000,12000,16000,20000)),
         "steps": (1,(0,2,4,8,16,32)),
-        "cov": (2,(1,10,100,1000,10000,100000))
+        "cov": (2,(1,10,100,1000,10000,100000)),
+        "cv": (3, (0,0.05,0.10,0.15,0.20,0.25))
     }
 	if prop not in switcher:
 		return res
@@ -54,6 +57,22 @@ def parse_user_input():
     return parser.parse_args()
 
 
+def get_path_vals_cv(path, covs, max_k_val=55):
+    """ returns cv value based on coverage values
+    	when path was removed - stored in 
+    	paths_w_cov.txt output file
+    """
+    wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])
+    tot_len = sum(wgts)
+    wgts = np.multiply(wgts, 1./tot_len)
+    mean = np.average(covs, weights = wgts)
+    # try:
+    # diffs = covs - mean    
+    std = np.sqrt(np.dot(wgts,(covs-mean)**2))
+    return std/mean
+
+
+############### ENTRY POINT ####################
 # inputs: paths_w_cov.txt file, 
 args = parse_user_input()
 
@@ -67,11 +86,14 @@ rnode_dict = {}
 for ind in range(len(lines)/4):
 	name = lines[ind*4].rstrip()
 	path = lines[ind*4 + 1].rstrip()
+	path_covs = np.array([float(a) for a in lines[ind*4 + 2].rstrip()[1:-1].split(",")])
+
 	cov = get_cov_from_spades_name(name)
 	length = get_length_from_spades_name(name)
 	num_steps = len(path.split(','))
+	cv = get_path_vals_cv(path[1:-1].split(","), path_covs)
 	# print name, num_steps, path
-	rnode_dict[name] = (length, num_steps, cov)
+	rnode_dict[name] = (length, num_steps, cov, cv)
 
 # issue - single node path RNODEs are not in path_w_cov files
 # read in cycs.fasta file, add back single node paths 
@@ -85,7 +107,7 @@ for ind in range(len(lines)/2):
 		cov = get_cov_from_spades_name(name)
 		length = get_length_from_spades_name(name)
 		# print name, 1
-		rnode_dict[name] = (length, 1, cov)
+		rnode_dict[name] = (length, 1, cov, 0)
 
 
 # nucmer.delta file parsed to RNODES having 100/80 hits with 
@@ -102,6 +124,6 @@ for line in lines:
 print "length: ", count_property_range_hits("length", rnode_dict, hits)
 print "steps: ", count_property_range_hits("steps", rnode_dict, hits)
 print "coverage: ", count_property_range_hits("cov", rnode_dict, hits)
-
+print "CV: ", count_property_range_hits("cv", rnode_dict, hits)
 
 

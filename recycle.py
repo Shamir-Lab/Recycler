@@ -166,11 +166,11 @@ def parse_user_input():
      '[default: 0.25, higher--> less restrictive]; Note: not a requisite for selection',
       required=False, default=1./4, type=float
       )
-    parser.add_argument('-b','--bamp', 
-        help='prefix to BAM files resulting from aligning reads to fasta file', 
-        required=False, type=str
-        )
-    # parser.add_argument('-d','--debug', 
+    # parser.add_argument('-b','--bamp', 
+    #     help='prefix to BAM files resulting from aligning reads to fasta file', 
+    #     required=False, type=str
+    #     )
+    # # parser.add_argument('-d','--debug', 
     #     help="Toggle DEBUG mode.  [Allowed values: 'T', 'F'] Writes a file listing all" +
     #     " paths reported & observed up to each reporting step. Warning: this file may be very large", 
     #     required=False, type=str
@@ -216,56 +216,56 @@ DEBUG = False
 # 2a. extract self loop edges from nodes having
 # AND-types == outies on both ends at most 500 bp away from end
 
-ands_file = args.bamp + '.fasta.ands.srt.bam'
-samfile = pysam.AlignmentFile(ands_file)
+# ands_file = args.bamp + '.fasta.ands.srt.bam'
+# samfile = pysam.AlignmentFile(ands_file)
 
-print "before adding, ", len(G.edges()), " edges"
+# print "before adding, ", len(G.edges()), " edges"
 
-for node in G.nodes():
-    try:
-        hits = samfile.fetch(node)
-        num_hits = sum(1 for _ in hits)
+# for node in G.nodes():
+#     try:
+#         hits = samfile.fetch(node)
+#         num_hits = sum(1 for _ in hits)
 
-        # print len(hits), hits 
-        if num_hits>1:
-            G.add_edge(node,node)
-            G.add_edge(rc_node(node),rc_node(node))
-    except ValueError:
-        continue
+#         # print len(hits), hits 
+#         if num_hits>1:
+#             G.add_edge(node,node)
+#             G.add_edge(rc_node(node),rc_node(node))
+#     except ValueError:
+#         continue
 
-print "after adding, ", len(G.edges()), " edges"
+# print "after adding, ", len(G.edges()), " edges"
 
 
 # next use contig_joining_type to connect
 # sink nodes having more than one pair of reads
 # connecting them
-joins_file = args.bamp + '.fasta.joins.srt.bam'
-samfile = pysam.AlignmentFile(joins_file)
-print "before adding, ", len(G.edges()), " edges"
+# joins_file = args.bamp + '.fasta.joins.srt.bam'
+# samfile = pysam.AlignmentFile(joins_file)
+# print "before adding, ", len(G.edges()), " edges"
 
-sinks = []
-hit_cnts = {}
-for node in G.nodes():
-    if G.out_degree(node)==0:
-        sinks.append(node)
-# print len(sinks), " sinks: ", sinks
-for node in sinks:
-    try:
-        hits = samfile.fetch(node)
+# sinks = []
+# hit_cnts = {}
+# for node in G.nodes():
+#     if G.out_degree(node)==0:
+#         sinks.append(node)
+# # print len(sinks), " sinks: ", sinks
+# for node in sinks:
+#     try:
+#         hits = samfile.fetch(node)
         
-        for hit in samfile.fetch(node):
-            nref = samfile.getrname(hit.next_reference_id)
+#         for hit in samfile.fetch(node):
+#             nref = samfile.getrname(hit.next_reference_id)
             
-            if nref in sinks: 
-                hit_cnts[(node,nref)] = hit_cnts.get((node,nref),0)+1
-                if hit_cnts[(node,nref)]>1:
-                    G.add_edge(node, nref)
-                    G.add_edge(rc_node(nref), rc_node(node))
+#             if nref in sinks: 
+#                 hit_cnts[(node,nref)] = hit_cnts.get((node,nref),0)+1
+#                 if hit_cnts[(node,nref)]>1:
+#                     G.add_edge(node, nref)
+#                     G.add_edge(rc_node(nref), rc_node(node))
 
-    except ValueError:
-        continue
+#     except ValueError:
+#         continue
             
-print "after adding, ", len(G.edges()), " edges"
+# print "after adding, ", len(G.edges()), " edges"
 
 
 # 2b. get subgraph defined by component fasta
@@ -308,8 +308,8 @@ for nd in G.nodes_with_selfloops(): #nodes_with_selfloops()
             self_loops.add((nd,))
             final_paths_dict[name] = (nd,)
             path_count += 1
-            if DEBUG:
-                all_paths_seen[(nd,)]=(nd,)
+            # if DEBUG:
+            #     all_paths_seen[(nd,)]=(nd,)
     to_remove |= set([nd,rc_node(nd)])
 
 for nd in to_remove:
@@ -328,11 +328,11 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
     # initialize shortest path set considered
     paths = enum_high_mass_shortest_paths(comp)
 
-    if DEBUG:
-        for p in paths:
-            # don't extract sequence (yet), do keep node order in dict values to limit memory
-            all_paths_seen[get_unoriented_sorted_str(p)] = p # get_seq_from_path(p, seqs)
-        f_debug.write(str(final_paths_dict.values()) + "\t" + str(all_paths_seen.values()) + "\n")
+    # if DEBUG:
+    #     for p in paths:
+    #         # don't extract sequence (yet), do keep node order in dict values to limit memory
+    #         all_paths_seen[get_unoriented_sorted_str(p)] = p # get_seq_from_path(p, seqs)
+    #     f_debug.write(str(final_paths_dict.values()) + "\t" + str(all_paths_seen.values()) + "\n")
 
 
     # peeling - iterate until no change in path set from 
@@ -367,10 +367,10 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
         
         curr_path = path_tuples[0][1]
         if get_total_path_mass(curr_path,G)<1:
-            if DEBUG:
-                for p in paths:
-                    all_paths_seen[get_unoriented_sorted_str(p)] = p
-                f_debug.write(str(final_paths_dict.values()) + "\t" + str(all_paths_seen.values()) + "\n")
+            # if DEBUG:
+            #     for p in paths:
+            #         all_paths_seen[get_unoriented_sorted_str(p)] = p
+            #     f_debug.write(str(final_paths_dict.values()) + "\t" + str(all_paths_seen.values()) + "\n")
 
             remove_path_nodes_from_graph(curr_path,comp)
             # recalc. paths since some might have been disrupted
@@ -402,10 +402,10 @@ for comp in list(nx.strongly_connected_component_subgraphs(G)):
                     + "\n" + str(path_nums) + "\n")
             # recalculate paths on the component
             print len(comp.nodes()), " nodes remain in component\n"
-            if DEBUG:
-                for p in paths:
-                    all_paths_seen[get_unoriented_sorted_str(p)] = p
-                f_debug.write(str(final_paths_dict.values()) + "\t" + str(all_paths_seen.values()) + "\n")
+            # if DEBUG:
+            #     for p in paths:
+            #         all_paths_seen[get_unoriented_sorted_str(p)] = p
+            #     f_debug.write(str(final_paths_dict.values()) + "\t" + str(all_paths_seen.values()) + "\n")
 
             paths = enum_high_mass_shortest_paths(comp,non_self_loops)
 

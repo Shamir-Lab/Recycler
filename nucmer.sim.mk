@@ -32,7 +32,7 @@ all: $(INPUT).cycs.fasta $(INPUT).cycs.dbl.fasta $(INPUT).nucmer.delta $(INPUT).
 
 # 0) run recycler on input
 $(INPUT).cycs.fasta: $(INPUT).fastg
-	python ~/recycle/recycle.py -g $(INPUT).fastg -s $(INPUT).fasta -m $(CV) -b $(INPUT_DIR)/reads_to_$(INPUT1)
+	python ~/recycle/recycle.py -g $(INPUT).fastg -s $(INPUT).fasta -m $(CV) #-b $(INPUT_DIR)/reads_to_$(INPUT1)
 
 # 1) concat output cycles to self:
 $(INPUT).cycs.dbl.fasta: $(INPUT).cycs.fasta
