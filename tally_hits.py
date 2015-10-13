@@ -36,6 +36,8 @@ def count_property_range_hits(prop, node_dict, hits):
 				if node in hits: pos_cnt += 1
 		if node_cnt > 0:
 			res.append( (pos_cnt, node_cnt, round(float(pos_cnt)/node_cnt,2)))
+		else:
+			res.append((0,0,0))
 		node_cnt = 0
 		pos_cnt = 0
 	return res
