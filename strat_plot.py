@@ -57,19 +57,29 @@ def ref_prop_plot(ref, prop, prop_ind, ranges):
 
 	for i in range(len(y_vals)):
 		if i == len(y_vals)-1 and prop_ind==3:
-			axarr[prop_ind].scatter(x_vals[i], y_vals[i], 
+			axarr[0][prop_ind].scatter(x_vals[i], y_vals[i], 
 			marker=ref.marker, label = ref.get_prop('label'),
 			facecolors=ref.color, edgecolors=ref.color, s=100)
 		elif i not in probs:
-			axarr[prop_ind].scatter(x_vals[i], y_vals[i], 
+			axarr[0][prop_ind].scatter(x_vals[i], y_vals[i], 
 			marker=ref.marker, 
 			facecolors=ref.color, edgecolors=ref.color, s=100)	
 		else:
-			axarr[prop_ind].scatter(x_vals[i], y_vals[i], 
+			axarr[0][prop_ind].scatter(x_vals[i], y_vals[i], 
 				marker=ref.marker, 
 				facecolors='none', edgecolors=ref.color, s=1000)
 
-	axarr[prop_ind].plot(x_vals, y_vals, c=ref.color)
+	axarr[0][prop_ind].plot(x_vals, y_vals, c=ref.color)
+
+def ref_counts_plot(ref, prop, prop_ind, ranges):
+	x_vals = get_x_mids(ranges[prop_ind])
+	row = ref.get_prop(prop)
+	instances = np.array([a[1] for a in row])
+	instances = np.true_divide(instances, sum(instances))
+	axarr[1][prop_ind].scatter(x_vals, instances, 
+		c=ref.color, marker=ref.marker, s=100)
+	axarr[1][prop_ind].plot(x_vals, instances, c=ref.color)
+
 
 def get_x_mids(rng):
 	return 0.5 * ( np.array(rng[:-1]) + np.array(rng[1:]) ) 
@@ -134,25 +144,36 @@ ref_1600 = RefDataType(
 
 # plots
 props = ['length', 'steps', 'coverage', 'cv']
-f, axarr = plt.subplots(1, len(props), sharey=True)
+f, axarr = plt.subplots(2, len(props), sharey='row', sharex='col')
 # axarr[0].set_xticklabels(labels)
 
 for ind, prop in enumerate(props):
 	for ref in [ref_100, ref_200, ref_400, ref_800, ref_1600]:
 		# print ref, prop, ind
 		ref_prop_plot(ref, prop, ind, ranges)
-
+		ref_counts_plot(ref, prop, ind, ranges)
 	if prop == 'cv':
-		axarr[ind].set_xlim(left=0, right=0.25)
+		axarr[0][ind].set_xlim(left=0, right=0.25)
+		axarr[1][ind].set_xlim(left=0, right=0.25)
 	if prop == 'steps':
-		axarr[ind].set_xscale('log', basex=2)
-		axarr[ind].set_xlim(1,32)
+		axarr[0][ind].set_xscale('log', basex=2)
+		axarr[0][ind].set_xlim(1,32)
+		axarr[1][ind].set_xscale('log', basex=2)
+		axarr[1][ind].set_xlim(1,32)
 	if prop == 'coverage':
-		axarr[ind].set_xscale('log', basex=10)
-	axarr[ind].set_title(prop.upper())
+		axarr[0][ind].set_xscale('log', basex=10)
+		axarr[1][ind].set_xscale('log', basex=10)
+	axarr[0][ind].set_title(prop.upper())
 
+	# x_vals = get_x_mids(ranges[ind])
+	# row = ref_1600.get_prop(prop)
+	# instances = np.array([a[1] for a in row])
+	# instances = np.true_divide(instances, sum(instances))
+	# axarr[1][ind].scatter(x_vals, instances, 
+	# 	c=ref_1600.color, marker=ref_1600.marker, s=100)
+	# axarr[1][ind].plot(x_vals, instances, c=ref_1600.color)
 
 # legend - put it on the rightmost
 
-axarr[ind].legend()
+axarr[0][ind].legend()
 plt.show()

@@ -35,7 +35,7 @@ endif
 all: $(INPUT).simple_cycs.fasta $(INPUT).simple_cycs.dbl.fasta $(INPUT).nucmer $(INPUT).nucmer.summary
 
 # 0) extract simple cycles from fasta file
-$(INPUT).simple_cycs.fasta: $(INPUT).fast
+$(INPUT).simple_cycs.fasta: $(INPUT).fasta
 	python ~/recycle/get_simple_cycs.py -i $^
 
 # 1) concat output cycles to self:
