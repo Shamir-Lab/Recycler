@@ -42,7 +42,10 @@ def parse_user_input():
     parser.add_argument('-i','--input',
      help='multi FASTA file to process ', required=True, type=str
      )
-    
+    parser.add_argument('-m','--maxk',
+     help='maximum value of k used in assembly, needed to avoid repeats in glueing ', required=False, type=int, default=55
+     )
+
     return parser.parse_args()
 
 args = parse_user_input()
@@ -55,5 +58,5 @@ out_name = root + ext.replace(".fasta", ".dbl.fasta")
 fo = open(out_name, 'w')
 
 for name,seq,qual in readfq(fp):
-    dbl_seq = seq + seq[55:]
+    dbl_seq = seq + seq[args.maxk:]
     fo.write(">"+name+'\n'+dbl_seq+"\n")

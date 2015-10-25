@@ -3,9 +3,9 @@
 REPEAT_RES_1 = 0
 REPEAT_RES_2 = 0
 
-
-INPUT_DIR = /vol/scratch/rozovr/M_res/
-READS_DIR = /home/gaga/rozovr/recycle_paper_data/
+INPUT_DIR = /home/nasheran/rozovr/recycle_paper_data/ref_1600
+# INPUT_DIR = /vol/scratch/rozovr/M_res/
+READS_DIR = /home/nasheran/rozovr/recycle_paper_data/
 
 
 
@@ -36,10 +36,13 @@ index_reads: $(INPUT_DIR)/$(INPUT1)
 	~/bwa/bwa index $^
 
 map_reads: $(INPUT_DIR)/$(INPUT1).bwt $(INPUT_DIR)/$(INPUT1).ann $(INPUT_DIR)/$(INPUT1).amb $(INPUT_DIR)/$(INPUT1).sa
-	~/bwa/bwa mem -t 16 $(INPUT_DIR)/$(INPUT1) \
-	$(READS_DIR)/M_1_trimmed.fastq \
-	$(READS_DIR)/M_2_trimmed.fastq | \
+	~/bwa/bwa bwasw -t 16 $(INPUT_DIR)/$(INPUT1) \
+	$(READS_DIR)/plasmids_sim_ref_1600_reads.1.named.fasta \
+	$(READS_DIR)/plasmids_sim_ref_1600_reads.2.named.fasta | \
 	samtools view -buS - > $(INPUT_DIR)/reads_to_$(INPUT1).bam
+
+# $(READS_DIR)/M_1_trimmed.fastq \
+# $(READS_DIR)/M_2_trimmed.fastq | \
 
 split_bam: $(INPUT_DIR)/reads_to_$(INPUT1).bam
 	samtools view -bf 66 -F 4 $(INPUT_DIR)/reads_to_$(INPUT1).bam | samtools sort -n - $(INPUT_DIR)/reads_to_$(INPUT1).proper-r1
@@ -54,14 +57,15 @@ bams_to_fq: $(INPUT_DIR)/reads_to_$(INPUT1).proper-r1.bam $(INPUT_DIR)/reads_to_
 	/home/gaga/rozovr/bedtools2-2.20.1/bin/bamToFastq -i $(INPUT_DIR)/reads_to_$(INPUT1).flagged-r1.bam -fq $(INPUT_DIR)/reads_to_$(INPUT1).flagged-r2.fastq
 
 re_assemble: $(INPUT_DIR)/reads_to_$(INPUT1).proper-r1.fastq $(INPUT_DIR)/reads_to_$(INPUT1).proper-r2.fastq $(INPUT_DIR)/reads_to_$(INPUT1).flagged-r1.fastq $(INPUT_DIR)/reads_to_$(INPUT1).flagged-r2.fastq
-	/home/gaga/rozovr/SPAdes-3.5.0-Linux/bin/spades.py --pe1-1 \
+	/home/gaga/rozovr/SPAdes-3.5.0-Linux/bin/spades.py --only-assembler --pe1-1 \
 	$(INPUT_DIR)/reads_to_$(INPUT1).proper-r1.fastq \
 	--pe1-2 $(INPUT_DIR)/reads_to_$(INPUT1).proper-r2.fastq \
 	--mp1-1 $(INPUT_DIR)/reads_to_$(INPUT1).flagged-r1.fastq \
 	--mp1-2 $(INPUT_DIR)/reads_to_$(INPUT1).flagged-r2.fastq \
-	-s $(READS_DIR)/M_U1_trimmed.fastq \
-	-s $(READS_DIR)/M_U2_trimmed.fastq -o \
-	$(INPUT_DIR)/iter2_on_$(INPUT1)/
+	-o $(INPUT_DIR)/iter2_on_$(INPUT1)/
+	# -s $(READS_DIR)/M_U1_trimmed.fastq \
+	# -s $(READS_DIR)/M_U2_trimmed.fastq -o \
+	# $(INPUT_DIR)/iter2_on_$(INPUT1)/
 
 recycle: $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPUT2) $(INPUT_DIR)/iter2_on_$(INPUT1)/$(GRAPH2)
 	python /specific/a/home/cc/cs/rozovr/recycle/recycle.py -g $(INPUT_DIR)/iter2_on_$(INPUT1)/$(GRAPH2) -s $(INPUT_DIR)/iter2_on_$(INPUT1)/$(INPU2)
