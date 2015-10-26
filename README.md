@@ -1,6 +1,6 @@
-# recycle
+# Recycler
 
-recycle extracts cycles likely to be plasmids from metagenome and genome assembly graphs
+Recycler extracts cycles likely to be plasmids from metagenome and genome assembly graphs
 
 ##usage: recycle.py [-h] -i INPUT.FASTG -c COMP.FASTA [-l LENGTH] [-m MAX_CV]
 
