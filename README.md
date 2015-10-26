@@ -2,7 +2,7 @@
 
 Recycler: an algorithm for detecting plasmids from de novo assembly graphs
 
-##usage: recycle.py [-h] -i INPUT.FASTG -c COMP.FASTA [-l LENGTH] [-m MAX_CV]
+##usage: python recycle.py [-h] -i INPUT.FASTG -c COMP.FASTA [-l LENGTH] [-m MAX_CV]
 
 
 ##required arguments:
