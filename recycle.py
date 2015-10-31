@@ -188,7 +188,7 @@ def parse_user_input():
 # 1. read in fastg, load graph, create output handle
 args = parse_user_input()
 fastg_name = args.graph
-seqs_name = args.sequences
+# seqs_name = args.sequences
 max_CV = args.max_CV
 min_length = args.length
 fp = open(fastg_name, 'r')
@@ -215,8 +215,8 @@ seqs = {}
 count = 0
 
 for name,seq,qual in readfq(fp):
-    if count % 2 == 0: continue 
     count += 1
+    if count % 2 == 0: continue 
     name = re.sub('[:,]'," ", name[:-1]).split(" ")[0]
     # avoid sources & sinks
     # TODO: get rid of higher order sources/sinks - e.g., 
