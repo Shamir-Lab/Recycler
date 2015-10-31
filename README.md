@@ -7,7 +7,7 @@ Recycler: an algorithm for detecting plasmids from de novo assembly graphs
 
 ##required arguments:
   -g, --input.fastg
-                      Input (SPAdes 3.50+) FASTG to process (before_rr.fastg recommended)
+                      Input FASTG to process (SPAdes 3.50 before_rr.fastg recommended)
   
   -s, --comp.fasta
                       FASTA of graph sequences to process [can be whole graph -- i.e., before_rr.fasta -- a single component, etc.]
