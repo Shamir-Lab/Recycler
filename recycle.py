@@ -153,10 +153,10 @@ def parse_user_input():
      help='(spades 3.50+) FASTG file to process [recommended: before_rr.fastg]',
      required=True, type=str
      )
-    parser.add_argument('-s',
-        '--sequences', help='FASTA file (contigs of interest in the graph) to process',
-         required=True, type=str
-         )
+    # parser.add_argument('-s',
+    #     '--sequences', help='FASTA file (contigs of interest in the graph) to process',
+    #      required=True, type=str
+    #      )
     parser.add_argument('-l', '--length',
      help='minimum length required for reporting [default: 1000]',
      required=False, type=int, default=1000
@@ -206,74 +206,18 @@ cycs_ofile = root + ext.replace(".fastg", ".cycs.paths_w_cov.txt")
 f_cyc_paths = open(cycs_ofile, 'w')
 DEBUG = False
 
-# if args.debug == 'T':
-#     DEBUG = True
-#     debug_ofile = root + ext.replace(".fastg", ".cycs.dbg.txt")
-#     f_debug = open(debug_ofile, 'w')
-#     all_paths_seen = {}
 
-###################################
-# 2a. extract self loop edges from nodes having
-# AND-types == outies on both ends at most 500 bp away from end
-
-# ands_file = args.bamp + '.fasta.ands.srt.bam'
-# samfile = pysam.AlignmentFile(ands_file)
-
-# print "before adding, ", len(G.edges()), " edges"
-
-# for node in G.nodes():
-#     try:
-#         hits = samfile.fetch(node)
-#         num_hits = sum(1 for _ in hits)
-
-#         # print len(hits), hits 
-#         if num_hits>1:
-#             G.add_edge(node,node)
-#             G.add_edge(rc_node(node),rc_node(node))
-#     except ValueError:
-#         continue
-
-# print "after adding, ", len(G.edges()), " edges"
-
-
-# next use contig_joining_type to connect
-# sink nodes having more than one pair of reads
-# connecting them
-# joins_file = args.bamp + '.fasta.joins.srt.bam'
-# samfile = pysam.AlignmentFile(joins_file)
-# print "before adding, ", len(G.edges()), " edges"
-
-# sinks = []
-# hit_cnts = {}
-# for node in G.nodes():
-#     if G.out_degree(node)==0:
-#         sinks.append(node)
-# # print len(sinks), " sinks: ", sinks
-# for node in sinks:
-#     try:
-#         hits = samfile.fetch(node)
-        
-#         for hit in samfile.fetch(node):
-#             nref = samfile.getrname(hit.next_reference_id)
-            
-#             if nref in sinks: 
-#                 hit_cnts[(node,nref)] = hit_cnts.get((node,nref),0)+1
-#                 if hit_cnts[(node,nref)]>1:
-#                     G.add_edge(node, nref)
-#                     G.add_edge(rc_node(nref), rc_node(node))
-
-#     except ValueError:
-#         continue
-            
-# print "after adding, ", len(G.edges()), " edges"
-
-
-# 2b. get subgraph defined by component fasta
+# 2b. get contig sequences from fastg
 # remove sources & sinks (can't be in cycle)
-fp = open(seqs_name, 'r')
+fp = open(fastg_name, 'r')
 seq_nodes = []
 seqs = {}
+count = 0
+
 for name,seq,qual in readfq(fp):
+    if count % 2 == 0: continue 
+    count += 1
+    name = re.sub('[:,]'," ", name[:-1]).split(" ")[0]
     # avoid sources & sinks
     # TODO: get rid of higher order sources/sinks - e.g., 
     # sinks caused by removal of sinks, ...
