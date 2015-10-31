@@ -212,18 +212,17 @@ DEBUG = False
 fp = open(fastg_name, 'r')
 seq_nodes = []
 seqs = {}
-count = 0
 
 for name,seq,qual in readfq(fp):
-    count += 1
-    if count % 2 == 0: continue 
+    
     name = re.sub('[:,]'," ", name[:-1]).split(" ")[0]
+    if name[-1] == "'": continue
     # avoid sources & sinks
     # TODO: get rid of higher order sources/sinks - e.g., 
     # sinks caused by removal of sinks, ...
     if G.out_degree(name)!=0 and G.in_degree(name)!=0:
         seq_nodes.extend([name, name+"'"])
-        seqs[name] = seq
+    seqs[name] = seq
 
 if (not (len(seq_nodes)>0 and len(seq_nodes)%2==0)):
     print "graph cleaning implied no cycles possible"
