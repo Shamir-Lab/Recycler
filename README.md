@@ -2,15 +2,15 @@
 
 Recycler: an algorithm for detecting plasmids from de novo assembly graphs
 
-##usage: python recycle.py [-h] -g INPUT.FASTG -s COMP.FASTA [-l LENGTH] [-m MAX_CV]
+##usage: python recycle.py [-h] -g GRAPH -s SEQUENCES [-l LENGTH] [-m MAX_CV]
 
 
 ##required arguments:
-  -g, --input.fastg
+  -g, --GRAPH
                       Input FASTG to process (SPAdes 3.50 before_rr.fastg recommended)
   
-  -s, --comp.fasta
-                      FASTA of graph sequences to process [can be whole graph -- i.e., before_rr.fasta -- a single component, etc.]
+  -s, --SEQUENCES
+                      FASTA of graph sequences to process (can be whole graph or selected component)
                       
 ##optional arguments:
   -h, --help            show help message and exit
