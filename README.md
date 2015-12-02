@@ -21,3 +21,15 @@ Recycler: an algorithm for detecting plasmids from de novo assembly graphs
   -m, --max_CV
                         coefficient of variation used for pre-selection
                         [default: 0.25, higher--> less restrictive]
+
+###outputs: 
+\<prefix\>.cycs.fasta  - a fasta formatted file of predicted plasmids
+
+\<prefix\>.cycs.paths_w_cov.txt - a text file containing information about each predicted plasmid.
+
+The format for the second file is:
+* *\<plasmid name\>* - e.g., RNODE_5_length_42666_cov_19.93685
+* *\<node names in the original graph making up this cycle\>* - e.g., \('NODE_2801_length_42596_cov_19.8677', "NODE_2387_length_125_cov_34.7286'"\).
+* *\<coverage levels of nodes at the time they are removed\>* - e.g., \[19.8677, 34.7286\]
+* *\<node numbers in the original graph making up this cycle\>* - e.g., \[2801, 2387\]. This can be useful for visualizing the path in tools like [Bandage](https://rrwick.github.io/Bandage/)
+
