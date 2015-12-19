@@ -1,26 +1,8 @@
 import re, argparse, os
-import networkx as nx
+# import networkx as nx
 from utils import *
 import pysam
 
-
-def get_adj_lines(fastg):
-    lines = []
-    fp = open(fastg, 'r')
-    # count = 0
-    for name,seq,qual in readfq(fp):
-        # count += 1
-        # if count % 2 == 0: continue 
-        name = re.sub('[:,]'," ", name[:-1])
-        lines.append(name)
-    return lines
-
-def rc_node(node):
-    """ gets reverse complement
-        spades node label
-    """ 
-    if node[-1] == "'": return node[:-1]
-    else: return node + "'"
 
 def get_unoriented_sorted_str(path):
     """ creates unq orientation oblivious string rep. of path, 
@@ -193,9 +175,8 @@ max_CV = args.max_CV
 min_length = args.length
 fp = open(fastg_name, 'r')
 files_dir = os.path.dirname(fp.name)
-G = nx.DiGraph() 
-lines = get_adj_lines(fastg_name)
-G = nx.parse_adjlist(lines, create_using=G)
+G = get_fastg_digraph(fastg_name)
+
 # fasta of sequences
 (root,ext) = os.path.splitext(fp.name)
 fasta_ofile = root + ext.replace(".fastg", ".cycs.fasta")
