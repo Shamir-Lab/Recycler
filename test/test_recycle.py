@@ -56,20 +56,29 @@ def test_coverage_funcs():
 	# F and R versions of both nodes and edges removed
 	assert_equal(len(G.nodes()), num_nodes-2)
 	assert_equal(len(G.edges()), num_edges-6)
+	# test removing again doesn't do anything
+	update_node_coverage(G, test_node, 0)
+	assert_equal(len(G.nodes()), num_nodes-2)
+	assert_equal(len(G.edges()), num_edges-6)
+
+def test_path_functions():
+	fastg = ROOT_DIR + "test/assembly_graph.fastg"
+	test_node = "EDGE_1243_length_1496_cov_78.6919"
+	G = get_fastg_digraph(fastg)
+	comps = nx.strongly_connected_component_subgraphs(G)
+	COMP = nx.DiGraph()
+	for c in comps:
+		if test_node in c.nodes():
+			COMP = c
+			break
+	SEQS = get_fastg_seqs_dict(fastg, COMP)
+	assert_equal(len(COMP.nodes()), 8) # 3 cycle comp with isolated nodes removed
+	assert_equal(len(SEQS), 8)
+	assert_equal(SEQS["EDGE_675_length_69_cov_24.9286'"], 
+		"TGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGT")
 
 
-# def get_cov_from_spades_name_and_graph(name,G):
-#     if name not in G:
-#         return 0
-#     if 'cov' in G.node[name]:
-#         return G.node[name]['cov']
-#     else:
-#         return get_cov_from_spades_name(name)
 
-# def get_spades_base_mass(G, name):
-#     length = get_length_from_spades_name(name)
-#     coverage = get_cov_from_spades_name_and_graph(name,G)
-#     return length * coverage
 
 # def get_seq_from_path(path, seqs, max_k_val=55):
 #     seq = get_fasta_stranded_seq(seqs, path[0])
@@ -111,5 +120,3 @@ def test_coverage_funcs():
 #     return sum([get_length_from_spades_name(p) * \
 #         get_cov_from_spades_name_and_graph(p,G) for p in path])
 
-
-# # get_fastg_digraph(

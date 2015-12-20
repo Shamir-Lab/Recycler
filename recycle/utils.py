@@ -72,6 +72,21 @@ def get_fastg_digraph(fastg_name):
     G = nx.DiGraph()
     return nx.parse_adjlist(lines, create_using=G)
 
+def get_fastg_seqs_dict(fastg_name, G):
+    """ returns a dictionary of sequences in graph 
+        where node names are keys and sequence strings
+        are values; useful for saving memory when G
+        is a subgraph (e.g., a component)
+    """ 
+    fp = open(fastg_name, 'r')
+    seqs = {}
+    for name,seq,qual in readfq(fp):
+        name_parts = re.sub('[:,]'," ", name[:-1]).split()
+        node = name_parts[0]
+        if node in G.nodes():
+            seqs[node] = seq
+    return seqs
+
 def rc_node(node):
     """ gets reverse complement
         spades node label
