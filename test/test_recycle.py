@@ -62,21 +62,34 @@ def test_coverage_funcs():
 	assert_equal(len(G.edges()), num_edges-6)
 
 def test_path_functions():
+	# load test graph
 	fastg = ROOT_DIR + "test/assembly_graph.fastg"
 	test_node = "EDGE_1243_length_1496_cov_78.6919"
 	G = get_fastg_digraph(fastg)
 	comps = nx.strongly_connected_component_subgraphs(G)
 	COMP = nx.DiGraph()
+
+	# choose desired SCC based on node in it
 	for c in comps:
 		if test_node in c.nodes():
-			COMP = c
+			COMP = c.copy()
 			break
 	SEQS = get_fastg_seqs_dict(fastg, COMP)
+
+	# check sequences and nodes have been fetched
 	assert_equal(len(COMP.nodes()), 8) # 3 cycle comp with isolated nodes removed
+	print COMP.nodes()
 	assert_equal(len(SEQS), 8)
 	assert_equal(SEQS["EDGE_675_length_69_cov_24.9286'"], 
 		"TGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGT")
+	
+	test_path = ('EDGE_1148_length_2822_cov_34.1811',
+		'EDGE_71_length_961_cov_29.7759',
+		'EDGE_1243_length_1496_cov_78.6919',
+		"EDGE_69_length_2131_cov_28.8675'"
+		)
 
+	assert_equal(len(get_seq_from_path(test_path, SEQS)), 7190)
 
 
 

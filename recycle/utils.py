@@ -122,12 +122,19 @@ def get_spades_base_mass(G, name):
     coverage = get_cov_from_spades_name_and_graph(name,G)
     return length * coverage
 
-def get_seq_from_path(path, seqs, max_k_val=55):
-    seq = get_fasta_stranded_seq(seqs, path[0])
-    if len(path)!=1:
-        for p in path[1:]:
-            seq += get_fasta_stranded_seq(seqs, p)[max_k_val:]
-    return seq
+def get_seq_from_path(path, seqs, max_k_val=55, cycle=True):
+    if len(path)==1:
+        if cycle: 
+            return seqs[path[0]][max_k_val:]
+        else:
+            return seqs[path[0]]
+    else:
+        seq = ''
+        for p in path:
+            seq += seqs[p][max_k_val:]
+        if cycle and path[0]==path[-1]:
+            seq -= path[0]
+        return seq
 
 def get_total_path_length(path, seqs):
     # return sum([get_length_from_spades_name(n) for n in path])
@@ -162,12 +169,12 @@ def get_total_path_mass(path,G):
     return sum([get_length_from_spades_name(p) * \
         get_cov_from_spades_name_and_graph(p,G) for p in path])
 
-def get_fasta_stranded_seq(seqs, seq_name):
-    """ gets sequence corresponding 
-        to same strand as fasta input file 
-        or rc seq depending on sequence name
-    """
-    if seq_name[-1]!="'":
-        return seqs[seq_name]
-    else: 
-        return rc_seq(seqs[seq_name[:-1]])
+# def get_fasta_stranded_seq(seqs, seq_name):
+#     """ gets sequence corresponding 
+#         to same strand as fasta input file 
+#         or rc seq depending on sequence name
+#     """
+#     if seq_name[-1]!="'":
+#         return seqs[seq_name]
+#     else: 
+#         return rc_seq(seqs[seq_name[:-1]])
