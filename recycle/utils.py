@@ -88,6 +88,20 @@ def get_cov_from_spades_name_and_graph(name,G):
     else:
         return get_cov_from_spades_name(name)
 
+def update_node_coverage(G, node, new_cov):
+    """ changes coverage value stored in 'cov'
+        field on both F and R version of a node
+        if new_cov is 0, both node versions are removed
+    """
+    if node not in G.nodes(): # nothing to be done, perhaps already removed
+        return
+    if new_cov == 0: 
+        G.remove_node(node)
+        G.remove_node(rc_node(node))
+    else:
+        G.add_node(node, cov=new_cov)
+        G.add_node(rc_node(node), cov=new_cov)
+
 def get_spades_base_mass(G, name):
     length = get_length_from_spades_name(name)
     coverage = get_cov_from_spades_name_and_graph(name,G)
