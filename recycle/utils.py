@@ -112,7 +112,8 @@ def update_node_coverage(G, node, new_cov):
         return
     if new_cov == 0: 
         G.remove_node(node)
-        G.remove_node(rc_node(node))
+        if rc_node(node) in G.nodes():
+            G.remove_node(rc_node(node))
     else:
         G.add_node(node, cov=new_cov)
         G.add_node(rc_node(node), cov=new_cov)
@@ -141,11 +142,6 @@ def get_seq_from_path(path, seqs, max_k_val=55, cycle=True):
         if cycle: return seq
         else: return start[:max_k_val] + seq
 
-# def get_total_path_length(path, seqs):
-#     # return sum([get_length_from_spades_name(n) for n in path])
-#     seq = get_seq_from_path(path, seqs)
-#     return len(seq)
-
 def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
     if len(path)< 2: return 0
     covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
@@ -157,25 +153,151 @@ def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
     std = np.sqrt(np.dot(wgts,(covs-mean)**2))
     return std/mean
 
-
-# def get_path_coverage_CV(path,G):
-#     covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
-#     if len(covs)< 2: return 0.000001
-#     mean = np.mean(covs)
-#     std = np.std(covs)
-#     # if mean == 0: return 1000 
-#     return std/mean
-
 def get_total_path_mass(path,G):
     return sum([get_length_from_spades_name(p) * \
         get_cov_from_spades_name_and_graph(p,G) for p in path])
 
-# def get_fasta_stranded_seq(seqs, seq_name):
-#     """ gets sequence corresponding 
-#         to same strand as fasta input file 
-#         or rc seq depending on sequence name
-#     """
-#     if seq_name[-1]!="'":
-#         return seqs[seq_name]
-#     else: 
-#         return rc_seq(seqs[seq_name[:-1]])
+#####
+
+def get_long_self_loops(G, min_length, seqs):
+    """ returns set of self loop nodes paths that are longer 
+        than min length; removes those and short self loops
+        from G
+    """
+    self_loops = set([])
+    to_remove = []
+
+    for nd in G.nodes_with_selfloops():
+        nd_path = (nd,)
+        if len(get_seq_from_path(nd_path, seqs)) >= min_length:
+            self_loops.add(nd_path)                
+        to_remove.append(nd)
+
+    for nd in to_remove:
+        update_node_coverage(G, nd, 0)
+    return self_loops
+
+
+
+def get_unoriented_sorted_str(path):
+    """ creates unq orientation oblivious string rep. of path, 
+        used to make sure node covered whenever rc of node is; 
+        lets us avoid issue of rc of node having different weight than node
+    """
+    all_rc_path = []
+    for p in path:
+        if p[-1] != "'": p = p+"'"
+        all_rc_path.append(p)
+    return "".join(sorted(all_rc_path))
+
+def enum_high_mass_shortest_paths(G, seen_paths=[]):
+    """ given component subgraph, returns list of paths that
+        - is non-redundant (includes) no repeats of same cycle
+        - includes all shortest paths starting at each node n (assigning 
+        node weights to be 1/(length * coverage)) to each of 
+        its predecessors, and returning to n
+    """
+
+    nodes = []
+    nodes[:] = G.nodes()
+
+    unq_sorted_paths = set([])
+    # in case orientation obliv. sorted path strings passed in
+    for p in seen_paths:
+        unq_sorted_paths.add(p)
+    paths = []
+    # use add_edge to assign edge weights to be 1/mass of starting node
+    for e in G.edges():
+        G.add_edge(e[0], e[1], cost = 1./get_spades_base_mass(G, e[0]))
+
+    for node in nodes:
+        if node[-1] == "'": continue
+        for pred in G.predecessors(node):
+            # needed because some nodes removed on updates
+            if pred not in G: continue
+
+            try:
+                path = nx.shortest_path(G, source=node,
+                    target=pred, weight='cost')
+            except nx.exception.NetworkXNoPath:
+                continue
+
+            
+            # below: create copy of path with each node as rc version
+            # use as unique representation of a path and rc of its whole            
+            unoriented_sorted_path_str = get_unoriented_sorted_str(path)
+
+            # here we avoid considering cyclic rotations of identical paths
+            # by sorting their string representations (all_rc_path above) 
+            # and comparing against the set already stored
+            if unoriented_sorted_path_str not in unq_sorted_paths:
+                unq_sorted_paths.add(unoriented_sorted_path_str)
+                paths.append(tuple(path))
+    
+    return paths
+
+
+def update_node_coverage_vals(path, G, comp, seqs, max_k_val=55):
+    """ given a path, updates node coverage values
+        assuming mean observed path coverage is used
+    """
+    
+    path_copy = list(path)
+    covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
+    # if len(covs)< 2: return 0.000001
+    # mean = np.mean(covs)
+    wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])
+    tot_len = get_total_path_length(path, seqs)
+    wgts = np.multiply(wgts, 1./tot_len)
+    mean_cov = np.average(covs, weights = wgts)
+
+    for nd in path_copy:
+        nd2 = rc_node(nd)
+        if nd in G and nd in comp:
+            new_cov = get_cov_from_spades_name_and_graph(nd,G) - mean_cov
+            if new_cov <= 0: 
+                G.remove_node(nd)
+                comp.remove_node(nd)
+            else:
+                G.add_node(nd, cov=new_cov)
+                comp.add_node(nd, cov=new_cov)
+        if nd2 in G and nd2 in comp:
+            new_cov = get_cov_from_spades_name_and_graph(nd2,G) - mean_cov
+            if new_cov <= 0:
+                G.remove_node(nd2)
+                comp.remove_node(nd2)
+            else:
+                G.add_node(nd2, cov=new_cov)
+                comp.add_node(nd2, cov=new_cov)
+    
+
+def clean_end_nodes_iteratively(G):
+    while(True):
+        len_before_update = len(G.nodes())
+        for nd in G.nodes():
+            nd2 =rc_node(nd)
+            # if (nd not in G or nd2 not in G): break
+            if G.out_degree(nd)==0 or G.in_degree(nd)==0:
+                if nd in G:
+                    G.remove_node(nd)
+                if nd2 in G:
+                    G.remove_node(nd2)
+        if len(G.nodes()) == len_before_update: break
+
+
+def remove_path_nodes_from_graph(path,G):
+    for nd in path:
+        if nd in G:
+            G.remove_node(nd)
+        if rc_node(nd) in G:
+            G.remove_node(rc_node(nd))
+
+
+
+def get_spades_type_name(count, path, seqs, G, cov=None):
+    if cov==None:
+        cov = get_total_path_mass(path,G)/get_total_path_length(path, seqs)
+    info = ["RNODE", str(count+1), "length", str(get_total_path_length(path, seqs)),
+     "cov", '%.5f' % (cov)]
+    return "_".join(info)
+

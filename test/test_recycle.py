@@ -78,8 +78,6 @@ def test_path_functions():
 	# print COMP.nodes()
 	# check sequences and nodes have been fetched
 	assert_equal(len(COMP.nodes()), 8) # 3 cycle comp with isolated nodes removed
-	
-	# 69-, 71+, 675-, 676-, 677+, 1148+, 1243+, 1244-
 	assert_equal(len(SEQS), 8)
 	assert_equal(SEQS["EDGE_675_length_69_cov_24.9286'"], 
 		"TGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGT")
@@ -120,12 +118,26 @@ def test_path_functions():
 		update_node_coverage(G, node, get_cov_from_spades_name(node))
 		update_node_coverage(COMP2, node, get_cov_from_spades_name(node)*10)
 		update_node_coverage(COMP3, node, get_cov_from_spades_name(node)*1000)
-	# print [get_cov_from_spades_name_and_graph(n, COMP2) for n in COMP2.nodes()]
-	# print [get_cov_from_spades_name_and_graph(n, COMP3) for n in COMP3.nodes()]
-
+	
 	assert_equal(get_wgtd_path_coverage_CV(test_path, COMP2, SEQS), 
 		get_wgtd_path_coverage_CV(test_path, COMP3, SEQS))
 
 	assert_equal(get_total_path_mass(test_path, COMP3) 
 		/ get_total_path_mass(test_path, COMP2), 100)
 
+
+def test_get_long_self_loops():
+	fastg = ROOT_DIR + "test/assembly_graph.fastg"
+	G = get_fastg_digraph(fastg)
+	SEQS = get_fastg_seqs_dict(fastg, G)
+	min_length = 1000 
+	# test returned set
+	assert_true(("EDGE_2131_length_56011_cov_21.811'",) in get_long_self_loops(G,min_length,SEQS))
+	assert_true(("EDGE_299_length_56_cov_728",) not in get_long_self_loops(G,min_length,SEQS)) # too short
+	assert_true(("EDGE_1548_length_7806_cov_2.3197'",) not in get_long_self_loops(G,min_length,SEQS)) # linear
+
+	# test loop nodes removed from graph
+	assert_true("EDGE_2131_length_56011_cov_21.811'" not in G)
+	assert_true("EDGE_2131_length_56011_cov_21.811" not in G)
+	assert_true("EDGE_299_length_56_cov_728" not in G)
+	assert_true("EDGE_299_length_56_cov_728'" not in G)
