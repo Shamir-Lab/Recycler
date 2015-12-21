@@ -75,10 +75,15 @@ def test_path_functions():
 			COMP = c.copy()
 			break
 	SEQS = get_fastg_seqs_dict(fastg, COMP)
-
+	print COMP.nodes()
 	# check sequences and nodes have been fetched
 	assert_equal(len(COMP.nodes()), 8) # 3 cycle comp with isolated nodes removed
-	print COMP.nodes()
+	
+	# 69-, 71+, 675-, 676-, 677+, 1148+, 1243+, 1244-
+	# ["EDGE_1244_length_5010_cov_35.8545'", 'EDGE_677_length_63_cov_57.625',
+	#  "EDGE_676_length_1278_cov_32.0638'", "EDGE_675_length_69_cov_24.9286'",
+	#   'EDGE_1148_length_2822_cov_34.1811', 'EDGE_71_length_961_cov_29.7759',
+	#  'EDGE_1243_length_1496_cov_78.6919', "EDGE_69_length_2131_cov_28.8675'"]
 	assert_equal(len(SEQS), 8)
 	assert_equal(SEQS["EDGE_675_length_69_cov_24.9286'"], 
 		"TGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGT")
@@ -88,36 +93,53 @@ def test_path_functions():
 		'EDGE_1243_length_1496_cov_78.6919',
 		"EDGE_69_length_2131_cov_28.8675'"
 		)
+	#69-, 71+, 1148+, 1243+, 676-, 677+, 1244- 
+	test_fig8_path = ("EDGE_69_length_2131_cov_28.8675'",
+		'EDGE_71_length_961_cov_29.7759',  'EDGE_1148_length_2822_cov_34.1811',
+		'EDGE_1243_length_1496_cov_78.6919',
+		"EDGE_676_length_1278_cov_32.0638'", 'EDGE_677_length_63_cov_57.625',
+		 "EDGE_1244_length_5010_cov_35.8545'"
+		)
 
-	assert_equal(len(get_seq_from_path(test_path, SEQS)), 7190)
+	# test linear path, cycle, figure 8 all have correct length
+	assert_equal(len(get_seq_from_path(test_path, SEQS, cycle=True)), 7190)	
+	assert_equal(len(get_seq_from_path(test_path, SEQS, cycle=False)), 7245)
+	assert_equal(len(get_seq_from_path(test_fig8_path, SEQS, cycle=True)), 13376)
+	assert_equal(len(get_seq_from_path(test_fig8_path, SEQS, cycle=False)), 13431)
 
+	# single node path - CV = 0
+	assert_equal(get_wgtd_path_coverage_CV(("EDGE_69_length_2131_cov_28.8675'",),
+		G, SEQS),0)
 
+	# set coverage values to dummy values for testing
+	for node in test_path:
+		update_node_coverage(G, node, 10)
+	# const coverage path - CV = 0
+	assert_equal(get_wgtd_path_coverage_CV(test_path, G, SEQS), 0)
+	# CV doesn't depend on magnitude
+	COMP2 = COMP.copy()
+	COMP3 = COMP.copy()
 
-# def get_seq_from_path(path, seqs, max_k_val=55):
-#     seq = get_fasta_stranded_seq(seqs, path[0])
-#     if len(path)!=1:
-#         for p in path[1:]:
-#             seq += get_fasta_stranded_seq(seqs, p)[max_k_val:]
-#     return seq
+	for node in test_path:
+		update_node_coverage(G, node, get_cov_from_spades_name(node))
+		update_node_coverage(COMP2, node, get_cov_from_spades_name(node)*10)
+		update_node_coverage(COMP3, node, get_cov_from_spades_name(node)*1000)
+	print [get_cov_from_spades_name_and_graph(n, COMP2) for n in COMP2.nodes()]
+	print [get_cov_from_spades_name_and_graph(n, COMP3) for n in COMP3.nodes()]
 
-# def get_total_path_length(path, seqs):
-#     # return sum([get_length_from_spades_name(n) for n in path])
-#     seq = get_seq_from_path(path, seqs)
-#     return len(seq)
+	assert_equal(get_wgtd_path_coverage_CV(test_path, COMP2, SEQS), 
+		get_wgtd_path_coverage_CV(test_path, COMP3, SEQS))
+
 
 # def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
+#     if len(path)< 2: return 0
 #     covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
-#     if len(covs)< 2: return 0.000001
-#     # mean = np.mean(covs)
 #     wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])
-#     tot_len = get_total_path_length(path, seqs)
+#     tot_len = len(get_seq_from_path(test_path, seqs, cycle=True))
 #     wgts = np.multiply(wgts, 1./tot_len)
 #     mean = np.average(covs, weights = wgts)
-#     # try:
-#     # diffs = covs - mean    
+      
 #     std = np.sqrt(np.dot(wgts,(covs-mean)**2))
-#     # except TypeError:
-#     #     print type(wgts), type(diffs**2), wgts, covs-mean
 #     return std/mean
 
 

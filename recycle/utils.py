@@ -123,37 +123,38 @@ def get_spades_base_mass(G, name):
     return length * coverage
 
 def get_seq_from_path(path, seqs, max_k_val=55, cycle=True):
+    """ retrieves sequence from a path;
+        instead of specifying cycles by having the first and 
+        last node be equal, the user must decide if a cycle is
+        the intent to avoid redundant k-mers at the ends
+    """
+    start = seqs[path[0]]
     if len(path)==1:
         if cycle: 
-            return seqs[path[0]][max_k_val:]
+            return start[max_k_val:]
         else:
-            return seqs[path[0]]
+            return start
     else:
         seq = ''
         for p in path:
             seq += seqs[p][max_k_val:]
-        if cycle and path[0]==path[-1]:
-            seq -= path[0]
-        return seq
+        if cycle: return seq
+        else: return start[:max_k_val] + seq
 
-def get_total_path_length(path, seqs):
-    # return sum([get_length_from_spades_name(n) for n in path])
-    seq = get_seq_from_path(path, seqs)
-    return len(seq)
+# def get_total_path_length(path, seqs):
+#     # return sum([get_length_from_spades_name(n) for n in path])
+#     seq = get_seq_from_path(path, seqs)
+#     return len(seq)
 
 def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
+    if len(path)< 2: return 0
     covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
-    if len(covs)< 2: return 0.000001
-    # mean = np.mean(covs)
     wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])
-    tot_len = get_total_path_length(path, seqs)
+    tot_len = len(get_seq_from_path(path, seqs, cycle=True))
     wgts = np.multiply(wgts, 1./tot_len)
     mean = np.average(covs, weights = wgts)
-    # try:
-    # diffs = covs - mean    
+      
     std = np.sqrt(np.dot(wgts,(covs-mean)**2))
-    # except TypeError:
-    #     print type(wgts), type(diffs**2), wgts, covs-mean
     return std/mean
 
 
