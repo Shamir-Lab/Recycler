@@ -144,14 +144,17 @@ def get_seq_from_path(path, seqs, max_k_val=55, cycle=True):
 
 def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
     if len(path)< 2: return 0
+    mean, std = get_path_mean_std(path, G, seqs, max_k_val)
+    return std/mean
+
+def get_path_mean_std(path, G, seqs, max_k_val=55):
     covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
     wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])
     tot_len = len(get_seq_from_path(path, seqs, cycle=True))
     wgts = np.multiply(wgts, 1./tot_len)
     mean = np.average(covs, weights = wgts)
-      
     std = np.sqrt(np.dot(wgts,(covs-mean)**2))
-    return std/mean
+    return (mean,std)
 
 def get_total_path_mass(path,G):
     return sum([get_length_from_spades_name(p) * \
@@ -185,8 +188,6 @@ def get_unoriented_sorted_str(path):
         if p[-1] != "'": p = p+"'"
         all_rc_path.append(p)
     return "".join(sorted(all_rc_path))
-
-#####
 
 def enum_high_mass_shortest_paths(G, seen_paths=None):
     """ given component subgraph, returns list of paths that
@@ -235,6 +236,7 @@ def enum_high_mass_shortest_paths(G, seen_paths=None):
     
     return paths
 
+#####
 
 def update_node_coverage_vals(path, G, comp, seqs, max_k_val=55):
     """ given a path, updates node coverage values
@@ -242,13 +244,7 @@ def update_node_coverage_vals(path, G, comp, seqs, max_k_val=55):
     """
     
     path_copy = list(path)
-    covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
-    # if len(covs)< 2: return 0.000001
-    # mean = np.mean(covs)
-    wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])
-    tot_len = get_total_path_length(path, seqs)
-    wgts = np.multiply(wgts, 1./tot_len)
-    mean_cov = np.average(covs, weights = wgts)
+    mean_cov, _ = get_path_mean_std(path, G, seqs, max_k_val)
 
     for nd in path_copy:
         nd2 = rc_node(nd)
