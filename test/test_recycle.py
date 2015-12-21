@@ -141,3 +141,44 @@ def test_get_long_self_loops():
 	assert_true("EDGE_2131_length_56011_cov_21.811" not in G)
 	assert_true("EDGE_299_length_56_cov_728" not in G)
 	assert_true("EDGE_299_length_56_cov_728'" not in G)
+
+def test_get_unoriented_sorted_str():
+	test_path = ('EDGE_1148_length_2822_cov_34.1811',
+		'EDGE_71_length_961_cov_29.7759',
+		'EDGE_1243_length_1496_cov_78.6919',
+		"EDGE_69_length_2131_cov_28.8675'"
+		)
+	assert_equal(get_unoriented_sorted_str(test_path), 
+		"EDGE_1148_length_2822_cov_34.1811'EDGE_1243_length_1496_cov_78.6919'EDGE_69_length_2131_cov_28.8675'EDGE_71_length_961_cov_29.7759'")
+
+def test_enum_high_mass_shortest_paths():
+	# get component, gen. cycles on it
+	## should refactor this out to function, 
+	# as long as I know nosetests won't call that function
+	fastg = ROOT_DIR + "test/assembly_graph.fastg"
+	test_node = "EDGE_1243_length_1496_cov_78.6919"
+	G = get_fastg_digraph(fastg)
+	comps = nx.strongly_connected_component_subgraphs(G)
+	COMP = nx.DiGraph()
+	for c in comps:
+		if test_node in c.nodes():
+			COMP = c.copy()
+			break
+
+	paths = enum_high_mass_shortest_paths(COMP)
+	# print paths
+	assert_true(len(paths) < len(COMP.nodes()))
+
+	test_path = ('EDGE_1148_length_2822_cov_34.1811',
+		'EDGE_71_length_961_cov_29.7759',
+		'EDGE_1243_length_1496_cov_78.6919',
+		"EDGE_69_length_2131_cov_28.8675'"
+		)
+	for n in test_path:
+		update_node_coverage(COMP, n, 0)
+
+	paths = enum_high_mass_shortest_paths(COMP)
+	assert_equal(len(paths), 1) # only 2 contig loop remains
+	assert_true(paths[0] in (('EDGE_677_length_63_cov_57.625', "EDGE_675_length_69_cov_24.9286'"), 
+		("EDGE_675_length_69_cov_24.9286'", 'EDGE_677_length_63_cov_57.625')))
+

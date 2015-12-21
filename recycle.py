@@ -138,46 +138,22 @@ G = get_fastg_digraph(fastg)
 
 # gets set of long simple loops, removes short
 # simple loops from graph
-long_self_loops = get_long_self_loops(G, min_length):
-
+long_self_loops = get_long_self_loops(G, min_length)
+VISITED_NODES = set([]) # used to avoid problems due to RC nodes we may have removed
 
 comps = nx.strongly_connected_component_subgraphs(G)
 COMP = nx.DiGraph()
 
+print "================== path, coverage levels when added ===================="
 for c in comps:
+    # check if any nodes in comp in visited nodes
+    # if so continue
+    
     COMP = c.copy()
     SEQS = get_fastg_seqs_dict(fastg, COMP)
 
-
-self_loops = set([])
-non_self_loops = set([])
-final_paths_dict = {}
-to_remove = set([])
-# remove single node cycles, store if long enough
-
-path_count = 0
-for nd in G.nodes_with_selfloops(): #nodes_with_selfloops()
-    if get_length_from_spades_name(nd) >= min_length:
-        if (rc_node(nd),) not in self_loops:
-            name = get_spades_type_name(path_count, (nd,), seqs, G)
-            self_loops.add((nd,))
-            final_paths_dict[name] = (nd,)
-            path_count += 1
-            
-    to_remove |= set([nd,rc_node(nd)])
-
-for nd in to_remove:
-    if nd in G: G.remove_node(nd)
-
-
-# H = G.to_undirected()
-
-print "================== path, coverage levels when added ===================="
-for comp in list(nx.strongly_connected_component_subgraphs(G)):
-    # comp = G.subgraph(comp.nodes())
- 
     # initialize shortest path set considered
-    paths = enum_high_mass_shortest_paths(comp)
+    paths = enum_high_mass_shortest_paths(COMP)
 
     
     # peeling - iterate until no change in path set from 

@@ -157,8 +157,6 @@ def get_total_path_mass(path,G):
     return sum([get_length_from_spades_name(p) * \
         get_cov_from_spades_name_and_graph(p,G) for p in path])
 
-#####
-
 def get_long_self_loops(G, min_length, seqs):
     """ returns set of self loop nodes paths that are longer 
         than min length; removes those and short self loops
@@ -177,10 +175,8 @@ def get_long_self_loops(G, min_length, seqs):
         update_node_coverage(G, nd, 0)
     return self_loops
 
-
-
 def get_unoriented_sorted_str(path):
-    """ creates unq orientation oblivious string rep. of path, 
+    """ creates unique, orientation-oblivious string representation of path, 
         used to make sure node covered whenever rc of node is; 
         lets us avoid issue of rc of node having different weight than node
     """
@@ -190,16 +186,19 @@ def get_unoriented_sorted_str(path):
         all_rc_path.append(p)
     return "".join(sorted(all_rc_path))
 
-def enum_high_mass_shortest_paths(G, seen_paths=[]):
+#####
+
+def enum_high_mass_shortest_paths(G, seen_paths=None):
     """ given component subgraph, returns list of paths that
         - is non-redundant (includes) no repeats of same cycle
         - includes all shortest paths starting at each node n (assigning 
         node weights to be 1/(length * coverage)) to each of 
         its predecessors, and returning to n
     """
-
+    if seen_paths == None:
+        seen_paths = []
     nodes = []
-    nodes[:] = G.nodes()
+    nodes = list(G.nodes()) # creates a copy
 
     unq_sorted_paths = set([])
     # in case orientation obliv. sorted path strings passed in
@@ -211,7 +210,7 @@ def enum_high_mass_shortest_paths(G, seen_paths=[]):
         G.add_edge(e[0], e[1], cost = 1./get_spades_base_mass(G, e[0]))
 
     for node in nodes:
-        if node[-1] == "'": continue
+        # if node[-1] == "'": continue
         for pred in G.predecessors(node):
             # needed because some nodes removed on updates
             if pred not in G: continue
