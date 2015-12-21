@@ -158,13 +158,13 @@ def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
     return std/mean
 
 
-def get_path_coverage_CV(path,G):
-    covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
-    if len(covs)< 2: return 0.000001
-    mean = np.mean(covs)
-    std = np.std(covs)
-    # if mean == 0: return 1000 
-    return std/mean
+# def get_path_coverage_CV(path,G):
+#     covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
+#     if len(covs)< 2: return 0.000001
+#     mean = np.mean(covs)
+#     std = np.std(covs)
+#     # if mean == 0: return 1000 
+#     return std/mean
 
 def get_total_path_mass(path,G):
     return sum([get_length_from_spades_name(p) * \
