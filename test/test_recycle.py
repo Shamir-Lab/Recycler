@@ -182,3 +182,4 @@ def test_enum_high_mass_shortest_paths():
 	assert_true(paths[0] in (('EDGE_677_length_63_cov_57.625', "EDGE_675_length_69_cov_24.9286'"), 
 		("EDGE_675_length_69_cov_24.9286'", 'EDGE_677_length_63_cov_57.625')))
 
+
