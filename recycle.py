@@ -40,7 +40,7 @@ args = parse_user_input()
 fastg = args.graph
 max_CV = args.max_CV
 min_length = args.length
-fp = open(fastg_name, 'r')
+fp = open(fastg, 'r')
 files_dir = os.path.dirname(fp.name)
 
 # output 1 - fasta of sequences
@@ -138,19 +138,21 @@ G = get_fastg_digraph(fastg)
 path_count = 0
 # gets set of long simple loops, removes short
 # simple loops from graph
-long_self_loops = get_long_self_loops(G, min_length)
+SEQS = get_fastg_seqs_dict(fastg,G)
+long_self_loops = get_long_self_loops(G, min_length, SEQS)
 non_self_loops = set([])
 VISITED_NODES = set([]) # used to avoid problems due to RC nodes we may have removed
 final_paths_dict = {}
 
 for nd in long_self_loops:
-    name = get_spades_type_name(path_count, nd, seqs, G)
+    name = get_spades_type_name(path_count, nd, 
+        SEQS, G, get_cov_from_spades_name(nd[0]))
     final_paths_dict[name] = nd
     path_count += 1
 
 comps = nx.strongly_connected_component_subgraphs(G)
 COMP = nx.DiGraph()
-
+redundant = False
 print "================== path, coverage levels when added ===================="
 for c in comps:
     # check if any nodes in comp in visited nodes
@@ -160,9 +162,10 @@ for c in comps:
             redundant = True
             break
     if redundant:
+        redundant = False
         continue # have seen the RC version of component
     COMP = c.copy()
-    SEQS = get_fastg_seqs_dict(fastg, COMP)
+    # SEQS = get_fastg_seqs_dict(fastg, COMP)
 
     # initialize shortest path set considered
     paths = enum_high_mass_shortest_paths(COMP)
@@ -205,13 +208,12 @@ for c in comps:
             paths = enum_high_mass_shortest_paths(COMP,non_self_loops)
             continue
 
-######
         if get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= max_CV and \
         get_unoriented_sorted_str(curr_path) not in non_self_loops:
 
             covs_before_update = [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
             cov_val_before_update = get_total_path_mass(curr_path,COMP) /\
-             get_total_path_length(curr_path, SEQS)
+             len(get_seq_from_path(curr_path, SEQS))
             path_nums = [get_num_from_spades_name(p) for p in curr_path]
             update_path_coverage_vals(curr_path, COMP, SEQS)
             name = get_spades_type_name(path_count,curr_path, SEQS, COMP, cov_val_before_update)

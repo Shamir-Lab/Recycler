@@ -180,7 +180,8 @@ def get_long_self_loops(G, min_length, seqs):
 
     for nd in G.nodes_with_selfloops():
         nd_path = (nd,)
-        if len(get_seq_from_path(nd_path, seqs)) >= min_length:
+        if len(get_seq_from_path(nd_path, seqs)) >= min_length \
+        and (rc_node(nd),) not in self_loops:
             self_loops.add(nd_path)                
         to_remove.append(nd)
 
