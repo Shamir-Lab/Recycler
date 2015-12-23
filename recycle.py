@@ -135,11 +135,18 @@ f_cyc_paths = open(cycs_ofile, 'w')
 
 
 G = get_fastg_digraph(fastg)
-
+path_count = 0
 # gets set of long simple loops, removes short
 # simple loops from graph
 long_self_loops = get_long_self_loops(G, min_length)
+non_self_loops = set([])
 VISITED_NODES = set([]) # used to avoid problems due to RC nodes we may have removed
+final_paths_dict = {}
+
+for nd in long_self_loops:
+    name = get_spades_type_name(path_count, nd, seqs, G)
+    final_paths_dict[name] = nd
+    path_count += 1
 
 comps = nx.strongly_connected_component_subgraphs(G)
 COMP = nx.DiGraph()
@@ -148,12 +155,18 @@ print "================== path, coverage levels when added ===================="
 for c in comps:
     # check if any nodes in comp in visited nodes
     # if so continue
-    
+    for node in c.nodes():
+        if c in VISITED_NODES:
+            redundant = True
+            break
+    if redundant:
+        continue # have seen the RC version of component
     COMP = c.copy()
     SEQS = get_fastg_seqs_dict(fastg, COMP)
 
     # initialize shortest path set considered
     paths = enum_high_mass_shortest_paths(COMP)
+
 
     
     # peeling - iterate until no change in path set from 
@@ -164,14 +177,13 @@ for c in comps:
     # continue as long as you either removed a low mass path
     # from the component or added a new path to final paths
     while(path_count!=last_path_count or\
-        len(comp.nodes())!=last_node_count):
+        len(COMP.nodes())!=last_node_count):
 
-        last_node_count = len(comp.nodes())
+        last_node_count = len(COMP.nodes())
         last_path_count = path_count
 
         if(len(paths)==0): break
 
-        # print paths
         # using initial set of paths or set from last iteration
         # sort the paths by CV and test the lowest CV path for removal 
         # need to use lambda because get_cov needs 2 parameters
@@ -179,48 +191,48 @@ for c in comps:
         # make tuples of (CV, path)
         path_tuples = []
         for p in paths:
-            # path_tuples.append((get_path_coverage_CV(p,G), p))
-            # print get_wgtd_path_coverage_CV(p,G,seqs), p
-            path_tuples.append((get_wgtd_path_coverage_CV(p,G,seqs), p))
+            path_tuples.append((get_wgtd_path_coverage_CV(p,COMP,SEQS), p))
         
         # sort in ascending CV order
         path_tuples.sort(key=lambda path: path[0]) 
         
         curr_path = path_tuples[0][1]
-        if get_total_path_mass(curr_path,G)<1:
-            
-            remove_path_nodes_from_graph(curr_path,comp)
+        if get_total_path_mass(curr_path,COMP)<1:
+            for n in curr_path:
+                update_node_coverage(COMP,n,0)
             # recalc. paths since some might have been disrupted
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
-            paths = enum_high_mass_shortest_paths(comp,non_self_loops)
+            paths = enum_high_mass_shortest_paths(COMP,non_self_loops)
             continue
 
-        # if get_path_coverage_CV(curr_path,G) <= max_CV and \
-        if get_wgtd_path_coverage_CV(curr_path,G,seqs) <= max_CV and \
+######
+        if get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= max_CV and \
         get_unoriented_sorted_str(curr_path) not in non_self_loops:
 
-            covs_before_update = [get_cov_from_spades_name_and_graph(p,G) for p in curr_path]
-            cov_val_before_update = get_total_path_mass(curr_path,G) /\
-             get_total_path_length(curr_path, seqs)
+            covs_before_update = [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
+            cov_val_before_update = get_total_path_mass(curr_path,COMP) /\
+             get_total_path_length(curr_path, SEQS)
             path_nums = [get_num_from_spades_name(p) for p in curr_path]
-            update_node_coverage_vals(curr_path, G, comp, seqs)
-            # clean_end_nodes_iteratively(comp)
-            name = get_spades_type_name(path_count,curr_path, seqs, G, cov_val_before_update)
+            update_path_coverage_vals(curr_path, COMP, SEQS)
+            name = get_spades_type_name(path_count,curr_path, SEQS, COMP, cov_val_before_update)
             path_count += 1
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
             final_paths_dict[name] = curr_path
 
             # only report to file if long enough
-            if get_total_path_length(curr_path, seqs)>=min_length:
+            if len(get_seq_from_path(curr_path, SEQS))>=min_length:
                 print curr_path
                 print "before", covs_before_update
-                print "after", [get_cov_from_spades_name_and_graph(p,G) for p in curr_path]
+                print "after", [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) 
                     + "\n" + str(path_nums) + "\n")
             # recalculate paths on the component
-            print len(comp.nodes()), " nodes remain in component\n"
+            print len(COMP.nodes()), " nodes remain in component\n"
             
-            paths = enum_high_mass_shortest_paths(comp,non_self_loops)
+            paths = enum_high_mass_shortest_paths(COMP,non_self_loops)
+    rc_nodes = [rc_node(n) for n in COMP.nodes()]
+    VISITED_NODES.update(COMP.nodes())
+    VISITED_NODES.update(rc_nodes)
 
 # done peeling
 # print final paths to screen
@@ -228,7 +240,7 @@ print "==================final_paths identities after updates: ================"
 
 # write out sequences to fasta
 for p in final_paths_dict.keys():
-    seq = get_seq_from_path(final_paths_dict[p], seqs)
+    seq = get_seq_from_path(final_paths_dict[p], SEQS)
     print final_paths_dict[p]
     print ""
     if len(seq)>=min_length:

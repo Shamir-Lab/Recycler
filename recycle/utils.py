@@ -156,6 +156,16 @@ def get_path_mean_std(path, G, seqs, max_k_val=55):
     std = np.sqrt(np.dot(wgts,(covs-mean)**2))
     return (mean,std)
 
+def update_path_coverage_vals(path, G, seqs):
+    mean, _ = get_path_mean_std(path, G, seqs)
+    covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
+    new_covs = covs - mean
+    for i in range(len(path)):
+        if new_covs[i] > 0:
+            update_node_coverage(G,path[i],new_covs[i])
+        else:
+            update_node_coverage(G,path[i],0)
+
 def get_total_path_mass(path,G):
     return sum([get_length_from_spades_name(p) * \
         get_cov_from_spades_name_and_graph(p,G) for p in path])
@@ -236,63 +246,12 @@ def enum_high_mass_shortest_paths(G, seen_paths=None):
     
     return paths
 
-#####
-
-def update_node_coverage_vals(path, G, comp, seqs, max_k_val=55):
-    """ given a path, updates node coverage values
-        assuming mean observed path coverage is used
-    """
-    
-    path_copy = list(path)
-    mean_cov, _ = get_path_mean_std(path, G, seqs, max_k_val)
-
-    for nd in path_copy:
-        nd2 = rc_node(nd)
-        if nd in G and nd in comp:
-            new_cov = get_cov_from_spades_name_and_graph(nd,G) - mean_cov
-            if new_cov <= 0: 
-                G.remove_node(nd)
-                comp.remove_node(nd)
-            else:
-                G.add_node(nd, cov=new_cov)
-                comp.add_node(nd, cov=new_cov)
-        if nd2 in G and nd2 in comp:
-            new_cov = get_cov_from_spades_name_and_graph(nd2,G) - mean_cov
-            if new_cov <= 0:
-                G.remove_node(nd2)
-                comp.remove_node(nd2)
-            else:
-                G.add_node(nd2, cov=new_cov)
-                comp.add_node(nd2, cov=new_cov)
-    
-
-def clean_end_nodes_iteratively(G):
-    while(True):
-        len_before_update = len(G.nodes())
-        for nd in G.nodes():
-            nd2 =rc_node(nd)
-            # if (nd not in G or nd2 not in G): break
-            if G.out_degree(nd)==0 or G.in_degree(nd)==0:
-                if nd in G:
-                    G.remove_node(nd)
-                if nd2 in G:
-                    G.remove_node(nd2)
-        if len(G.nodes()) == len_before_update: break
-
-
-def remove_path_nodes_from_graph(path,G):
-    for nd in path:
-        if nd in G:
-            G.remove_node(nd)
-        if rc_node(nd) in G:
-            G.remove_node(rc_node(nd))
-
-
 
 def get_spades_type_name(count, path, seqs, G, cov=None):
+    path_len = len(get_seq_from_path(path,seqs))
     if cov==None:
-        cov = get_total_path_mass(path,G)/get_total_path_length(path, seqs)
-    info = ["RNODE", str(count+1), "length", str(get_total_path_length(path, seqs)),
+        cov = get_total_path_mass(path,G)/float(path_len)
+    info = ["RNODE", str(count+1), "length", str(path_len),
      "cov", '%.5f' % (cov)]
     return "_".join(info)
 
