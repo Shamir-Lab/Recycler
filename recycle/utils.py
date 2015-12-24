@@ -256,7 +256,7 @@ def get_non_repeat_nodes(G, path):
     """
     sing_nodes = []
     for nd in path:
-        if G.outdegree(nd)==1 and G.indegree(nd)==1:
+        if G.out_degree(nd)==1 and G.in_degree(nd)==1:
             sing_nodes.append(nd)
     return sing_nodes
 

@@ -134,7 +134,7 @@ def test_get_long_self_loops():
 	min_length = 1000 
 	# test returned set
 	assert_true(("EDGE_2131_length_56011_cov_21.811",) in get_long_self_loops(G,min_length,SEQS))
-	assert_true(("EDGE_2131_length_56011_cov_21.811'",) not in get_long_self_loops(G,min_length,SEQS))
+	assert_true(("EDGE_2131_length_56011_cov_21.811'",) not in get_long_self_loops(G,min_length,SEQS)) # rc version not in
 	assert_true(("EDGE_299_length_56_cov_728",) not in get_long_self_loops(G,min_length,SEQS)) # too short
 	assert_true(("EDGE_1548_length_7806_cov_2.3197'",) not in get_long_self_loops(G,min_length,SEQS)) # linear
 
@@ -178,5 +178,24 @@ def test_enum_high_mass_shortest_paths():
 
 def test_get_non_repeat_nodes():
 	G,COMP,SEQS = get_sample_graph_comp_seqs()
-	pass
+	test_path = ('EDGE_1148_length_2822_cov_34.1811',
+		'EDGE_71_length_961_cov_29.7759',
+		'EDGE_1243_length_1496_cov_78.6919',
+		"EDGE_69_length_2131_cov_28.8675'"
+		)
+	assert_true(get_non_repeat_nodes(G,test_path), ['EDGE_71_length_961_cov_29.7759'])
+
+	test_fig8_path = ("EDGE_69_length_2131_cov_28.8675'",
+		'EDGE_71_length_961_cov_29.7759',  'EDGE_1148_length_2822_cov_34.1811',
+		'EDGE_1243_length_1496_cov_78.6919',
+		"EDGE_676_length_1278_cov_32.0638'", 'EDGE_677_length_63_cov_57.625',
+		 "EDGE_1244_length_5010_cov_35.8545'"
+		)
+	sing_nodes = get_non_repeat_nodes(G,test_fig8_path)
+	print sing_nodes
+	assert_true('EDGE_71_length_961_cov_29.7759' in sing_nodes)
+	assert_true("EDGE_676_length_1278_cov_32.0638'" in sing_nodes)
+	assert_true("EDGE_1244_length_5010_cov_35.8545'" in sing_nodes)
+	
+		
 
