@@ -3,6 +3,22 @@ from recycle.utils import *
 
 ROOT_DIR = "/specific/a/home/cc/cs/rozovr/recycle/"
 
+def get_sample_graph_comp_seqs():
+	# load test graph
+	fastg = ROOT_DIR + "test/assembly_graph.fastg"
+	test_node = "EDGE_1243_length_1496_cov_78.6919"
+	G = get_fastg_digraph(fastg)
+	comps = nx.strongly_connected_component_subgraphs(G)
+	COMP = nx.DiGraph()
+
+	# choose desired SCC based on node in it
+	for c in comps:
+		if test_node in c.nodes():
+			COMP = c.copy()
+			break
+	SEQS = get_fastg_seqs_dict(fastg, G)
+	return G,COMP,SEQS
+
 def test_rc():
 	assert_equal("ACGTT", rc_seq("AACGT"))
 	assert_equal("ACGT", rc_seq("ACGT")) # palindrome
@@ -62,23 +78,9 @@ def test_coverage_funcs():
 	assert_equal(len(G.edges()), num_edges-6)
 
 def test_path_functions():
-	# load test graph
-	fastg = ROOT_DIR + "test/assembly_graph.fastg"
-	test_node = "EDGE_1243_length_1496_cov_78.6919"
-	G = get_fastg_digraph(fastg)
-	comps = nx.strongly_connected_component_subgraphs(G)
-	COMP = nx.DiGraph()
-
-	# choose desired SCC based on node in it
-	for c in comps:
-		if test_node in c.nodes():
-			COMP = c.copy()
-			break
-	SEQS = get_fastg_seqs_dict(fastg, COMP)
-	# print COMP.nodes()
+	G,COMP,SEQS = get_sample_graph_comp_seqs()
 	# check sequences and nodes have been fetched
 	assert_equal(len(COMP.nodes()), 8) # 3 cycle comp with isolated nodes removed
-	assert_equal(len(SEQS), 8)
 	assert_equal(SEQS["EDGE_675_length_69_cov_24.9286'"], 
 		"TGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGT")
 	
@@ -127,12 +129,12 @@ def test_path_functions():
 
 
 def test_get_long_self_loops():
-	fastg = ROOT_DIR + "test/assembly_graph.fastg"
-	G = get_fastg_digraph(fastg)
-	SEQS = get_fastg_seqs_dict(fastg, G)
+	G,COMP,SEQS = get_sample_graph_comp_seqs()
+
 	min_length = 1000 
 	# test returned set
-	assert_true(("EDGE_2131_length_56011_cov_21.811'",) in get_long_self_loops(G,min_length,SEQS))
+	assert_true(("EDGE_2131_length_56011_cov_21.811",) in get_long_self_loops(G,min_length,SEQS))
+	assert_true(("EDGE_2131_length_56011_cov_21.811'",) not in get_long_self_loops(G,min_length,SEQS))
 	assert_true(("EDGE_299_length_56_cov_728",) not in get_long_self_loops(G,min_length,SEQS)) # too short
 	assert_true(("EDGE_1548_length_7806_cov_2.3197'",) not in get_long_self_loops(G,min_length,SEQS)) # linear
 
@@ -155,15 +157,7 @@ def test_enum_high_mass_shortest_paths():
 	# get component, gen. cycles on it
 	## should refactor this out to function, 
 	# as long as I know nosetests won't call that function
-	fastg = ROOT_DIR + "test/assembly_graph.fastg"
-	test_node = "EDGE_1243_length_1496_cov_78.6919"
-	G = get_fastg_digraph(fastg)
-	comps = nx.strongly_connected_component_subgraphs(G)
-	COMP = nx.DiGraph()
-	for c in comps:
-		if test_node in c.nodes():
-			COMP = c.copy()
-			break
+	G,COMP,SEQS = get_sample_graph_comp_seqs()
 
 	paths = enum_high_mass_shortest_paths(COMP)
 	# print paths
@@ -182,5 +176,7 @@ def test_enum_high_mass_shortest_paths():
 	assert_true(paths[0] in (('EDGE_677_length_63_cov_57.625', "EDGE_675_length_69_cov_24.9286'"), 
 		("EDGE_675_length_69_cov_24.9286'", 'EDGE_677_length_63_cov_57.625')))
 
-
+def test_get_non_repeat_nodes():
+	G,COMP,SEQS = get_sample_graph_comp_seqs()
+	pass
 

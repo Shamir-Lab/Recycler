@@ -247,6 +247,19 @@ def enum_high_mass_shortest_paths(G, seen_paths=None):
     
     return paths
 
+def get_non_repeat_nodes(G, path):
+    """ returns a list of all non-repeat (in degree and out-degree
+        == 1) nodes in a path; if there are no such nodes,
+        returns an empty list
+        NB: G input should be whole graph, not specific SCC, to avoid 
+        disregarding isolated nodes  
+    """
+    sing_nodes = []
+    for nd in path:
+        if G.outdegree(nd)==1 and G.indegree(nd)==1:
+            sing_nodes.append(nd)
+    return sing_nodes
+
 
 def get_spades_type_name(count, path, seqs, G, cov=None):
     path_len = len(get_seq_from_path(path,seqs))
