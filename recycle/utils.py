@@ -1,6 +1,6 @@
 import numpy as np
 import networkx as nx
-import re
+import re, pysam
 complements = {'A':'T', 'C':'G', 'G':'C', 'T':'A'}
 
 
@@ -269,3 +269,39 @@ def get_spades_type_name(count, path, seqs, G, cov=None):
      "cov", '%.5f' % (cov)]
     return "_".join(info)
 
+def get_contigs_of_mates(node, bamfile, G):
+    """ retrieves set of nodes mapped to by read pairs
+        having one mate on node; discards isolated nodes
+        because they tend to reflect irrelevant alignments
+    """
+    mate_tigs = set([])
+
+    try:
+        # hits = bamfile.fetch(node)
+    
+        for hit in bamfile.fetch(node):
+            nref = bamfile.getrname(hit.next_reference_id)
+            if nref != node:
+                mate_tigs.add(nref)
+
+    except ValueError:
+        print "got ValueError"
+    source_name = re.sub('NODE_','EDGE_', node)
+
+    to_remove = set([])
+    for nd in mate_tigs:
+        # flip name from "NODE_" prefix back to "EDGE_"
+        # differs between contigs set and graph node names
+        nd_name = re.sub('NODE_','EDGE_', nd)
+        if G.in_degree(nd_name)==0 and G.out_degree(nd_name)==0:
+            to_remove.add(nd)
+        # see if nd reachable by node or vice-versa
+        # try both flipping to rc and switching source and target    
+        elif not any([nx.has_path(G, source_name, nd_name), nx.has_path(G, rc_node(source_name),nd_name), 
+          nx.has_path(G, nd_name, source_name), nx.has_path(G, nd_name, rc_node(source_name))]):
+            to_remove.add(nd)
+    mate_tigs -= to_remove
+    return mate_tigs
+
+def is_good_cyc():
+    pass

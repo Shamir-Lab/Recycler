@@ -2,6 +2,17 @@ from nose.tools import *
 from recycle.utils import *
 
 ROOT_DIR = "/specific/a/home/cc/cs/rozovr/recycle/"
+TEST_PATH = ('EDGE_1148_length_2822_cov_34.1811',
+		'EDGE_71_length_961_cov_29.7759',
+		'EDGE_1243_length_1496_cov_78.6919',
+		"EDGE_69_length_2131_cov_28.8675'"
+		)
+TEST_FIG8_PATH = ("EDGE_69_length_2131_cov_28.8675'",
+		'EDGE_71_length_961_cov_29.7759',  'EDGE_1148_length_2822_cov_34.1811',
+		'EDGE_1243_length_1496_cov_78.6919',
+		"EDGE_676_length_1278_cov_32.0638'", 'EDGE_677_length_63_cov_57.625',
+		 "EDGE_1244_length_5010_cov_35.8545'"
+		)
 
 def get_sample_graph_comp_seqs():
 	# load test graph
@@ -77,55 +88,45 @@ def test_coverage_funcs():
 	assert_equal(len(G.nodes()), num_nodes-2)
 	assert_equal(len(G.edges()), num_edges-6)
 
-def test_path_functions():
+def TEST_PATH_functions():
 	G,COMP,SEQS = get_sample_graph_comp_seqs()
 	# check sequences and nodes have been fetched
 	assert_equal(len(COMP.nodes()), 8) # 3 cycle comp with isolated nodes removed
 	assert_equal(SEQS["EDGE_675_length_69_cov_24.9286'"], 
 		"TGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGTCCCTTTTACTGTTACAAAATGT")
 	
-	test_path = ('EDGE_1148_length_2822_cov_34.1811',
-		'EDGE_71_length_961_cov_29.7759',
-		'EDGE_1243_length_1496_cov_78.6919',
-		"EDGE_69_length_2131_cov_28.8675'"
-		)
 	#69-, 71+, 1148+, 1243+, 676-, 677+, 1244- 
-	test_fig8_path = ("EDGE_69_length_2131_cov_28.8675'",
-		'EDGE_71_length_961_cov_29.7759',  'EDGE_1148_length_2822_cov_34.1811',
-		'EDGE_1243_length_1496_cov_78.6919',
-		"EDGE_676_length_1278_cov_32.0638'", 'EDGE_677_length_63_cov_57.625',
-		 "EDGE_1244_length_5010_cov_35.8545'"
-		)
+	
 
 	# test linear path, cycle, figure 8 all have correct length
-	assert_equal(len(get_seq_from_path(test_path, SEQS, cycle=True)), 7190)	
-	assert_equal(len(get_seq_from_path(test_path, SEQS, cycle=False)), 7245)
-	assert_equal(len(get_seq_from_path(test_fig8_path, SEQS, cycle=True)), 13376)
-	assert_equal(len(get_seq_from_path(test_fig8_path, SEQS, cycle=False)), 13431)
+	assert_equal(len(get_seq_from_path(TEST_PATH, SEQS, cycle=True)), 7190)	
+	assert_equal(len(get_seq_from_path(TEST_PATH, SEQS, cycle=False)), 7245)
+	assert_equal(len(get_seq_from_path(TEST_FIG8_PATH, SEQS, cycle=True)), 13376)
+	assert_equal(len(get_seq_from_path(TEST_FIG8_PATH, SEQS, cycle=False)), 13431)
 
 	# single node path - CV = 0
 	assert_equal(get_wgtd_path_coverage_CV(("EDGE_69_length_2131_cov_28.8675'",),
 		G, SEQS),0)
 
 	# set coverage values to dummy values for testing
-	for node in test_path:
+	for node in TEST_PATH:
 		update_node_coverage(G, node, 10)
 	# const coverage path - CV = 0
-	assert_equal(get_wgtd_path_coverage_CV(test_path, G, SEQS), 0)
+	assert_equal(get_wgtd_path_coverage_CV(TEST_PATH, G, SEQS), 0)
 	# CV doesn't depend on magnitude
 	COMP2 = COMP.copy()
 	COMP3 = COMP.copy()
 
-	for node in test_path:
+	for node in TEST_PATH:
 		update_node_coverage(G, node, get_cov_from_spades_name(node))
 		update_node_coverage(COMP2, node, get_cov_from_spades_name(node)*10)
 		update_node_coverage(COMP3, node, get_cov_from_spades_name(node)*1000)
 	
-	assert_equal(get_wgtd_path_coverage_CV(test_path, COMP2, SEQS), 
-		get_wgtd_path_coverage_CV(test_path, COMP3, SEQS))
+	assert_equal(get_wgtd_path_coverage_CV(TEST_PATH, COMP2, SEQS), 
+		get_wgtd_path_coverage_CV(TEST_PATH, COMP3, SEQS))
 
-	assert_equal(get_total_path_mass(test_path, COMP3) 
-		/ get_total_path_mass(test_path, COMP2), 100)
+	assert_equal(get_total_path_mass(TEST_PATH, COMP3) 
+		/ get_total_path_mass(TEST_PATH, COMP2), 100)
 
 
 def test_get_long_self_loops():
@@ -145,15 +146,15 @@ def test_get_long_self_loops():
 	assert_true("EDGE_299_length_56_cov_728'" not in G)
 
 def test_get_unoriented_sorted_str():
-	test_path = ('EDGE_1148_length_2822_cov_34.1811',
+	TEST_PATH = ('EDGE_1148_length_2822_cov_34.1811',
 		'EDGE_71_length_961_cov_29.7759',
 		'EDGE_1243_length_1496_cov_78.6919',
 		"EDGE_69_length_2131_cov_28.8675'"
 		)
-	assert_equal(get_unoriented_sorted_str(test_path), 
+	assert_equal(get_unoriented_sorted_str(TEST_PATH), 
 		"EDGE_1148_length_2822_cov_34.1811'EDGE_1243_length_1496_cov_78.6919'EDGE_69_length_2131_cov_28.8675'EDGE_71_length_961_cov_29.7759'")
 
-def test_enum_high_mass_shortest_paths():
+def test_enum_high_mass_shorTEST_PATHs():
 	# get component, gen. cycles on it
 	## should refactor this out to function, 
 	# as long as I know nosetests won't call that function
@@ -163,12 +164,8 @@ def test_enum_high_mass_shortest_paths():
 	# print paths
 	assert_true(len(paths) < len(COMP.nodes()))
 
-	test_path = ('EDGE_1148_length_2822_cov_34.1811',
-		'EDGE_71_length_961_cov_29.7759',
-		'EDGE_1243_length_1496_cov_78.6919',
-		"EDGE_69_length_2131_cov_28.8675'"
-		)
-	for n in test_path:
+	
+	for n in TEST_PATH:
 		update_node_coverage(COMP, n, 0)
 
 	paths = enum_high_mass_shortest_paths(COMP)
@@ -178,24 +175,28 @@ def test_enum_high_mass_shortest_paths():
 
 def test_get_non_repeat_nodes():
 	G,COMP,SEQS = get_sample_graph_comp_seqs()
-	test_path = ('EDGE_1148_length_2822_cov_34.1811',
-		'EDGE_71_length_961_cov_29.7759',
-		'EDGE_1243_length_1496_cov_78.6919',
-		"EDGE_69_length_2131_cov_28.8675'"
-		)
-	assert_true(get_non_repeat_nodes(G,test_path), ['EDGE_71_length_961_cov_29.7759'])
+	
+	assert_true(get_non_repeat_nodes(G,TEST_PATH), ['EDGE_71_length_961_cov_29.7759'])
 
-	test_fig8_path = ("EDGE_69_length_2131_cov_28.8675'",
-		'EDGE_71_length_961_cov_29.7759',  'EDGE_1148_length_2822_cov_34.1811',
-		'EDGE_1243_length_1496_cov_78.6919',
-		"EDGE_676_length_1278_cov_32.0638'", 'EDGE_677_length_63_cov_57.625',
-		 "EDGE_1244_length_5010_cov_35.8545'"
-		)
-	sing_nodes = get_non_repeat_nodes(G,test_fig8_path)
-	print sing_nodes
+	sing_nodes = get_non_repeat_nodes(G,TEST_FIG8_PATH)
 	assert_true('EDGE_71_length_961_cov_29.7759' in sing_nodes)
 	assert_true("EDGE_676_length_1278_cov_32.0638'" in sing_nodes)
 	assert_true("EDGE_1244_length_5010_cov_35.8545'" in sing_nodes)
-	
-		
+
+def test_get_contigs_of_mates():
+	G,COMP,SEQS = get_sample_graph_comp_seqs()
+	bamfile = pysam.AlignmentFile("test/SRR933487_pe_primary.sort.bam", 'rb')
+	# note mapped to positive nodes; thus only their names valid
+	mate_tigs = get_contigs_of_mates("NODE_1244_length_5010_cov_35.8545", bamfile, G)
+	# mate_tigs = get_contigs_of_mates("EDGE_800_length_15304_cov_22.6688", bamfile)
+	# iter = samfile.fetch("NODE_1244_length_5010_cov_35.8545")
+	# for hit in iter:
+	# 	print samfile.getrname(hit.next_reference_id)
+
+
+	print mate_tigs # EDGE_800_length_15304_cov_22.6688
+	assert_true("NODE_1243_length_1496_cov_78.6919" in mate_tigs)
+	assert_true("NODE_676_length_1278_cov_32.0638" in mate_tigs)
+# def test_is_good_cyc():
+# 	assert_false(is_good_cyc(('EDGE_800_length_15304_cov_22.6688', "EDGE_801_length_279_cov_57.2411'")))		
 
