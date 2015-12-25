@@ -185,18 +185,18 @@ def test_get_non_repeat_nodes():
 
 def test_get_contigs_of_mates():
 	G,COMP,SEQS = get_sample_graph_comp_seqs()
-	bamfile = pysam.AlignmentFile("test/SRR933487_pe_primary.sort.bam", 'rb')
+	bamfile = pysam.AlignmentFile("/home/nasheran/rozovr/recycle_paper_data/SRR933487_pe_primary.sort.bam", 'rb')
 	# note mapped to positive nodes; thus only their names valid
+	# also, need to change labels starting with "EDGE_" to "NODE_"
 	mate_tigs = get_contigs_of_mates("NODE_1244_length_5010_cov_35.8545", bamfile, G)
-	# mate_tigs = get_contigs_of_mates("EDGE_800_length_15304_cov_22.6688", bamfile)
-	# iter = samfile.fetch("NODE_1244_length_5010_cov_35.8545")
-	# for hit in iter:
-	# 	print samfile.getrname(hit.next_reference_id)
-
-
-	print mate_tigs # EDGE_800_length_15304_cov_22.6688
 	assert_true("NODE_1243_length_1496_cov_78.6919" in mate_tigs)
 	assert_true("NODE_676_length_1278_cov_32.0638" in mate_tigs)
-# def test_is_good_cyc():
-# 	assert_false(is_good_cyc(('EDGE_800_length_15304_cov_22.6688', "EDGE_801_length_279_cov_57.2411'")))		
+
+
+def test_is_good_cyc():
+	G,COMP,SEQS = get_sample_graph_comp_seqs()
+	bamfile = pysam.AlignmentFile("/home/nasheran/rozovr/recycle_paper_data/SRR933487_pe_primary.sort.bam", 'rb')
+
+	assert_false(is_good_cyc(('EDGE_800_length_15304_cov_22.6688', "EDGE_801_length_279_cov_57.2411'"), G, bamfile))		
+	assert_true(is_good_cyc(TEST_PATH, G, bamfile))	
 

@@ -285,7 +285,7 @@ def get_contigs_of_mates(node, bamfile, G):
                 mate_tigs.add(nref)
 
     except ValueError:
-        print "got ValueError"
+        pass
     source_name = re.sub('NODE_','EDGE_', node)
 
     to_remove = set([])
@@ -303,5 +303,25 @@ def get_contigs_of_mates(node, bamfile, G):
     mate_tigs -= to_remove
     return mate_tigs
 
-def is_good_cyc():
-    pass
+def is_good_cyc(path, G, bamfile):
+    """ check all non-repeat nodes only have mates 
+        mapping to contigs in the cycle, ignoring mappings
+        to isolated nodes or non-reachable nodes
+    """
+    sing_nodes = get_non_repeat_nodes(G,path)
+    # print sing_nodes
+    for nd in sing_nodes:
+        mate_tigs = get_contigs_of_mates(re.sub('EDGE_', 'NODE_' ,nd), bamfile, G)
+        # print mate_tigs
+        mate_tigs_fixed_names = [re.sub('NODE_','EDGE_', x) for x in mate_tigs]
+        # print mate_tigs_fixed_names
+        # need to check against F and R versions of path nodes 
+        in_path = [x in path for x in mate_tigs_fixed_names]
+        # print in_path
+        path_rc = [rc_node(x) for x in path]
+        in_rc_path = [x in path_rc for x in mate_tigs_fixed_names]
+        # print in_rc_path
+        if any([ (not in_path[i] and not in_rc_path[i]) for i in range(len(mate_tigs_fixed_names))]):
+            return False
+    return True
+
