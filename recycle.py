@@ -96,7 +96,6 @@ for c in comps:
         redundant = False
         continue # have seen the RC version of component
     COMP = c.copy()
-    # SEQS = get_fastg_seqs_dict(fastg, COMP)
 
     # initialize shortest path set considered
     paths = enum_high_mass_shortest_paths(COMP)
@@ -149,9 +148,9 @@ for c in comps:
             path_count += 1
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
 
-            # only report to file if long enough and good
+            ## only report to file if long enough and good
             path_mean, _ = get_path_mean_std(curr_path, G, SEQS)
-            # first good case - paired end reads on non-repeat nodes map on cycle
+            ## first good case - paired end reads on non-repeat nodes map on cycle
             if len(get_seq_from_path(curr_path, SEQS))>=min_length and is_good_cyc(curr_path,G,bamfile):
                 print curr_path
                 print "before", covs_before_update
@@ -159,7 +158,7 @@ for c in comps:
                 final_paths_dict[name] = curr_path
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) 
                     + "\n" + str(path_nums) + "\n")
-            # second good case - very high coverage (pairs may map outside due to high chimericism)
+            ## second good case - very high coverage (pairs may map outside due to high chimericism)
             elif len(get_seq_from_path(curr_path, SEQS))>=min_length and (path_mean > MED_COV + 2*STD_COV):
                 print curr_path
                 print "before", covs_before_update
