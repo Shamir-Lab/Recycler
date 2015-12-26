@@ -166,13 +166,14 @@ for c in comps:
             name = get_spades_type_name(path_count,curr_path, SEQS, COMP, cov_val_before_update)
             path_count += 1
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
-            final_paths_dict[name] = curr_path
 
             # only report to file if long enough
             if len(get_seq_from_path(curr_path, SEQS))>=min_length and is_good_cyc(curr_path,G,bamfile):
                 print curr_path
                 print "before", covs_before_update
                 print "after", [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
+                final_paths_dict[name] = curr_path
+
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) 
                     + "\n" + str(path_nums) + "\n")
             # recalculate paths on the component
