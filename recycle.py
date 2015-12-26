@@ -58,6 +58,11 @@ bamfile = pysam.AlignmentFile(args.bam)
 
 
 G = get_fastg_digraph(fastg)
+remove_isolated_nodes(G)
+
+MED_COV = np.median([get_cov_from_spades_name(n) for n in G.nodes()])
+STD_COV = np.std([get_cov_from_spades_name(n) for n in G.nodes()])
+print MED_COV, STD_COV
 path_count = 0
 # gets set of long simple loops, removes short
 # simple loops from graph
@@ -145,14 +150,24 @@ for c in comps:
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
 
             # only report to file if long enough and good
+            path_mean, _ = get_path_mean_std(curr_path, G, SEQS)
+            # first good case - paired end reads on non-repeat nodes map on cycle
             if len(get_seq_from_path(curr_path, SEQS))>=min_length and is_good_cyc(curr_path,G,bamfile):
                 print curr_path
                 print "before", covs_before_update
                 print "after", [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
                 final_paths_dict[name] = curr_path
-
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) 
                     + "\n" + str(path_nums) + "\n")
+            # second good case - very high coverage (pairs may map outside due to high chimericism)
+            elif len(get_seq_from_path(curr_path, SEQS))>=min_length and (path_mean > MED_COV + 2*STD_COV):
+                print curr_path
+                print "before", covs_before_update
+                print "after", [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
+                final_paths_dict[name] = curr_path
+                f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) 
+                    + "\n" + str(path_nums) + "\n")
+
             # recalculate paths on the component
             print len(COMP.nodes()), " nodes remain in component\n"
             
