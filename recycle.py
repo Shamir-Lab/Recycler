@@ -34,7 +34,7 @@ def parse_user_input():
 # outputs: fasta of cycles found by joining component edges
 
 ###################################
-# 1. read in fastg, load graph, create output handle
+# read in fastg, load graph, create output handle
 args = parse_user_input()
 fastg = args.graph
 max_CV = args.max_CV
@@ -54,31 +54,7 @@ bamfile = pysam.AlignmentFile(args.bam)
 
 
 ###################################
-# 2. 
-
-# for node in sinks:
-#     try:
-#         hits = bamfile.fetch(node)
-        
-#         for hit in bamfile.fetch(node):
-#             nref = bamfile.getrname(hit.next_reference_id)
-#             print nref
-
-# #             if nref in sinks: 
-# #                 hit_cnts[(node,nref)] = hit_cnts.get((node,nref),0)+1
-# #                 if hit_cnts[(node,nref)]>1:
-# #                     G.add_edge(node, nref)
-# #                     G.add_edge(rc_node(nref), rc_node(node))
-
-#     except ValueError:
-#         continue
-            
-# print "after adding, ", len(G.edges()), " edges"
-
-
-###################################
-# 3. generate all shortest cycles from each node
-# to each of its predecessors 
+# graph processing begins
 
 
 G = get_fastg_digraph(fastg)
@@ -101,6 +77,9 @@ comps = nx.strongly_connected_component_subgraphs(G)
 COMP = nx.DiGraph()
 redundant = False
 print "================== path, coverage levels when added ===================="
+
+###################################
+# iterate through SCCs looking for cycles
 for c in comps:
     # check if any nodes in comp in visited nodes
     # if so continue
@@ -116,8 +95,6 @@ for c in comps:
 
     # initialize shortest path set considered
     paths = enum_high_mass_shortest_paths(COMP)
-
-
     
     # peeling - iterate until no change in path set from 
     # one iteration to next
@@ -167,7 +144,7 @@ for c in comps:
             path_count += 1
             non_self_loops.add(get_unoriented_sorted_str(curr_path))
 
-            # only report to file if long enough
+            # only report to file if long enough and good
             if len(get_seq_from_path(curr_path, SEQS))>=min_length and is_good_cyc(curr_path,G,bamfile):
                 print curr_path
                 print "before", covs_before_update
