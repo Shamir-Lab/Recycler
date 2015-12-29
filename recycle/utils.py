@@ -289,14 +289,14 @@ def get_contigs_of_mates(node, bamfile, G):
 
     except ValueError:
         pass
-    source_name = re.sub('NODE_','EDGE_', node)
+    source_name = node #re.sub('NODE_','EDGE_', node)
 
     # print "before removal", mate_tigs
     to_remove = set([])
     for nd in mate_tigs:
         # flip name from "NODE_" prefix back to "EDGE_"
         # differs between contigs set and graph node names
-        nd_name = re.sub('NODE_','EDGE_', nd)
+        nd_name = nd #re.sub('NODE_','EDGE_', nd)
         if (G.in_degree(nd_name)==0 and G.out_degree(nd_name)==0) or \
         (not G.has_node(nd_name)):
             to_remove.add(nd)
@@ -318,17 +318,17 @@ def is_good_cyc(path, G, bamfile):
     sing_nodes = get_non_repeat_nodes(G,path)
     # print sing_nodes
     for nd in sing_nodes:
-        mate_tigs = get_contigs_of_mates(re.sub('EDGE_', 'NODE_' ,nd), bamfile, G)
+        mate_tigs = get_contigs_of_mates(nd, bamfile, G)  #re.sub('EDGE_', 'NODE_' ,nd), bamfile, G)
         # print mate_tigs
-        mate_tigs_fixed_names = [re.sub('NODE_','EDGE_', x) for x in mate_tigs]
+        # mate_tigs_fixed_names = [re.sub('NODE_','EDGE_', x) for x in mate_tigs]
         # print mate_tigs_fixed_names
         # need to check against F and R versions of path nodes 
-        in_path = [x in path for x in mate_tigs_fixed_names]
+        in_path = [x in path for x in mate_tigs] #_fixed_names]
         # print in_path
         path_rc = [rc_node(x) for x in path]
-        in_rc_path = [x in path_rc for x in mate_tigs_fixed_names]
+        in_rc_path = [x in path_rc for x in mate_tigs] #_fixed_names]
         # print in_rc_path
-        if any([ (not in_path[i] and not in_rc_path[i]) for i in range(len(mate_tigs_fixed_names))]):
+        if any([ (not in_path[i] and not in_rc_path[i]) for i in range(len(mate_tigs))]):
             return False
     return True
 

@@ -17,14 +17,17 @@ def parse_user_input():
      )
     parser.add_argument('-m', '--max_CV',
      help='coefficient of variation used for pre-selection '+
-     '[default: 0.25, higher--> less restrictive]; Note: not a requisite for selection',
+     '[default: 0.50, higher--> less restrictive]; Note: not a requisite for selection',
       required=False, default=1./4, type=float
       )
     parser.add_argument('-b','--bam', 
         help='BAM file resulting from aligning reads to contigs file, filtering for best matches', 
         required=True, type=str
         )
-    
+    parser.add_argument('-i','--iso', 
+        help='True or False value reflecting whether data sequenced was an isolated strain',
+        required=False, type=bool, default=False
+        )
     return parser.parse_args()
 
 
@@ -51,7 +54,7 @@ f_cycs_fasta = open(fasta_ofile, 'w')
 cycs_ofile = root + ext.replace(".fastg", ".cycs.paths_w_cov.txt")
 f_cyc_paths = open(cycs_ofile, 'w')
 bamfile = pysam.AlignmentFile(args.bam)
-
+ISO = args.iso
 
 ###################################
 # graph processing begins
@@ -60,9 +63,16 @@ bamfile = pysam.AlignmentFile(args.bam)
 G = get_fastg_digraph(fastg)
 remove_isolated_nodes(G)
 
-MED_COV = np.median([get_cov_from_spades_name(n) for n in G.nodes()])
-STD_COV = np.std([get_cov_from_spades_name(n) for n in G.nodes()])
-print MED_COV, STD_COV
+cov_vals = [get_cov_from_spades_name(n) for n in G.nodes()]
+MED_COV = np.median(cov_vals)
+STD_COV = np.std(cov_vals)
+if ISO:
+    thresh = MED_COV + 2*STD_COV
+    max_CV = 1./2
+else:
+    thresh = np.percentile(cov_vals, 75)
+
+print MED_COV, STD_COV, thresh
 path_count = 0
 # gets set of long simple loops, removes short
 # simple loops from graph
@@ -150,6 +160,7 @@ for c in comps:
 
             ## only report to file if long enough and good
             path_mean, _ = get_path_mean_std(curr_path, G, SEQS)
+
             ## first good case - paired end reads on non-repeat nodes map on cycle
             if len(get_seq_from_path(curr_path, SEQS))>=min_length and is_good_cyc(curr_path,G,bamfile):
                 print curr_path
@@ -159,7 +170,7 @@ for c in comps:
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) 
                     + "\n" + str(path_nums) + "\n")
             ## second good case - very high coverage (pairs may map outside due to high chimericism)
-            elif len(get_seq_from_path(curr_path, SEQS))>=min_length and (path_mean > MED_COV + 2*STD_COV):
+            elif len(get_seq_from_path(curr_path, SEQS))>=min_length and (path_mean > thresh):
                 print curr_path
                 print "before", covs_before_update
                 print "after", [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]

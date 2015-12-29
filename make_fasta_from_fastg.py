@@ -20,7 +20,7 @@ def parse_lines(fastg, ofile):
         count += 1
         if count % 2 == 0: continue 
         name = re.sub('[:,]'," ", name[:-1]).split(" ")[0]
-        line = ">"+name+"\n"+seq
+        line = ">"+name+"\n"+seq+"\n"
         ofile.write(line)
     
 args = parse_user_input()
