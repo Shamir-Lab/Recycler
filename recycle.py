@@ -66,6 +66,8 @@ remove_isolated_nodes(G)
 cov_vals = [get_cov_from_spades_name(n) for n in G.nodes()]
 MED_COV = np.median(cov_vals)
 STD_COV = np.std(cov_vals)
+# set thresholds for max. CV, min
+# path coverage for allowing cross mappings 
 if ISO:
     thresh = MED_COV + 2*STD_COV
     max_CV = 1./2
