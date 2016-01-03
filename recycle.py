@@ -17,7 +17,7 @@ def parse_user_input():
      )
     parser.add_argument('-m', '--max_CV',
      help='coefficient of variation used for pre-selection '+
-     '[default: 0.50, higher--> less restrictive]; Note: not a requisite for selection',
+     '[default: 0.5, higher--> less restrictive]; Note: not a requisite for selection',
       required=False, default=1./2, type=float
       )
     parser.add_argument('-b','--bam', 
@@ -70,7 +70,6 @@ STD_COV = np.std(cov_vals)
 # path coverage for allowing cross mappings 
 if ISO:
     thresh = np.percentile(cov_vals, 95)
-    # max_CV = 1./2
 else:
     thresh = np.percentile(cov_vals, 75)
 
@@ -153,11 +152,11 @@ for c in comps:
             if (   
                 len(get_seq_from_path(curr_path, SEQS))>=min_length \
                 and is_good_cyc(curr_path,G,bamfile) and \
-                get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= max_CV   
+                get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= (max_CV/len(curr_path))   
                 ) or \
             (   
                 len(get_seq_from_path(curr_path, SEQS))>=min_length and (path_mean > thresh) \
-                and get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= (max_CV**3)   
+                and get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= (max_CV/len(curr_path))   
                 ):
                 print curr_path
                 non_self_loops.add(get_unoriented_sorted_str(curr_path))
