@@ -152,6 +152,25 @@ def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
     mean, std = get_path_mean_std(path, G, seqs, max_k_val)
     return std/mean
 
+def get_node_cnts_hist(path):
+    d = {}
+    for p in path:
+        # always count based on positive node
+        pos_name = p if (p[-1]!="'") else p[:-1]    
+        d[pos_name] = d.get(pos_name,0) + 1
+    return d
+
+def get_path_covs(path,G):
+    covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
+    cnts = get_node_cnts_hist(path)
+    for i in range(len(path)):
+        p = path[i]
+        pos_name = p if (p[-1]!="'") else p[:-1]
+        if cnts[pos_name] > 1:
+            covs[i] /= cnts[pos_name]
+    return covs
+
+
 def get_path_mean_std(path, G, seqs, max_k_val=55):
     covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
     wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])

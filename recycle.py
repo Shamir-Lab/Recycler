@@ -18,7 +18,7 @@ def parse_user_input():
     parser.add_argument('-m', '--max_CV',
      help='coefficient of variation used for pre-selection '+
      '[default: 0.50, higher--> less restrictive]; Note: not a requisite for selection',
-      required=False, default=1./4, type=float
+      required=False, default=1./2, type=float
       )
     parser.add_argument('-b','--bam', 
         help='BAM file resulting from aligning reads to contigs file, filtering for best matches', 
@@ -70,7 +70,7 @@ STD_COV = np.std(cov_vals)
 # path coverage for allowing cross mappings 
 if ISO:
     thresh = MED_COV + 2*STD_COV
-    max_CV = 1./2
+    # max_CV = 1./2
 else:
     thresh = np.percentile(cov_vals, 75)
 
@@ -140,45 +140,36 @@ for c in comps:
         path_tuples.sort(key=lambda path: path[0]) 
         
         curr_path = path_tuples[0][1]
-        if get_total_path_mass(curr_path,COMP)<1:
-            for n in curr_path:
-                update_node_coverage(COMP,n,0)
-            # recalc. paths since some might have been disrupted
-            non_self_loops.add(get_unoriented_sorted_str(curr_path))
-            paths = enum_high_mass_shortest_paths(COMP,non_self_loops)
-            continue
-
-        if get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= max_CV and \
-        get_unoriented_sorted_str(curr_path) not in non_self_loops:
-
-            covs_before_update = [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
-            cov_val_before_update = get_total_path_mass(curr_path,COMP) /\
-             len(get_seq_from_path(curr_path, SEQS))
-            path_nums = [get_num_from_spades_name(p) for p in curr_path]
-            update_path_coverage_vals(curr_path, COMP, SEQS)
-            name = get_spades_type_name(path_count,curr_path, SEQS, COMP, cov_val_before_update)
-            path_count += 1
-            non_self_loops.add(get_unoriented_sorted_str(curr_path))
+        
+        if get_unoriented_sorted_str(curr_path) not in non_self_loops:
 
             ## only report to file if long enough and good
             path_mean, _ = get_path_mean_std(curr_path, G, SEQS)
 
             ## first good case - paired end reads on non-repeat nodes map on cycle
-            if len(get_seq_from_path(curr_path, SEQS))>=min_length and is_good_cyc(curr_path,G,bamfile):
+            ## typical or low coverage level
+            ## second good case - high coverage (pairs may map outside due to high chimericism), 
+            ## near constant coverage level
+            if (   
+                len(get_seq_from_path(curr_path, SEQS))>=min_length \
+                and is_good_cyc(curr_path,G,bamfile) and \
+                get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= max_CV   
+                ) or \
+            (   
+                len(get_seq_from_path(curr_path, SEQS))>=min_length and (path_mean > thresh) \
+                and get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= (max_CV**3)   
+                ):
                 print curr_path
-                print "before", covs_before_update
+                non_self_loops.add(get_unoriented_sorted_str(curr_path))
+                name = get_spades_type_name(path_count, curr_path, SEQS, COMP)
+                covs = [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
+                print "before", covs
+                f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs) 
+                    + "\n" + str([get_num_from_spades_name(p) for p in curr_path]) + "\n")
+                update_path_coverage_vals(curr_path, COMP, SEQS)
+                path_count += 1
                 print "after", [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
                 final_paths_dict[name] = curr_path
-                f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) 
-                    + "\n" + str(path_nums) + "\n")
-            ## second good case - very high coverage (pairs may map outside due to high chimericism)
-            elif len(get_seq_from_path(curr_path, SEQS))>=min_length and (path_mean > thresh):
-                print curr_path
-                print "before", covs_before_update
-                print "after", [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
-                final_paths_dict[name] = curr_path
-                f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs_before_update) 
-                    + "\n" + str(path_nums) + "\n")
 
             # recalculate paths on the component
             print len(COMP.nodes()), " nodes remain in component\n"
