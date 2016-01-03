@@ -18,7 +18,7 @@ def parse_user_input():
     parser.add_argument('-m', '--max_CV',
      help='coefficient of variation used for pre-selection '+
      '[default: 0.50, higher--> less restrictive]; Note: not a requisite for selection',
-      required=False, default=1./4, type=float
+      required=False, default=1./2, type=float
       )
     parser.add_argument('-b','--bam', 
         help='BAM file resulting from aligning reads to contigs file, filtering for best matches', 

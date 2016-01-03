@@ -161,7 +161,7 @@ def get_node_cnts_hist(path):
     return d
 
 def get_path_covs(path,G):
-    covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
+    covs = [get_cov_from_spades_name_and_graph(n,G) for n in path]
     cnts = get_node_cnts_hist(path)
     for i in range(len(path)):
         p = path[i]
