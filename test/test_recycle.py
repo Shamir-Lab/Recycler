@@ -193,12 +193,12 @@ def test_get_non_repeat_nodes():
 
 def test_get_contigs_of_mates():
 	G,COMP,SEQS = get_sample_graph_comp_seqs()
-	bamfile = pysam.AlignmentFile("/home/nasheran/rozovr/recycle_paper_data/SRR933487_pe_primary.sort.bam", 'rb')
+	bamfile = pysam.AlignmentFile("/home/nasheran/rozovr/recycle_paper_data/JJ1886_pe_primary.sort.bam", 'rb')
 	# note mapped to positive nodes; thus only their names valid
 	# also, need to change labels starting with "EDGE_" to "NODE_"
-	mate_tigs = get_contigs_of_mates("NODE_1244_length_5010_cov_35.8545", bamfile, G)
-	assert_true("NODE_1243_length_1496_cov_78.6919" in mate_tigs)
-	assert_true("NODE_676_length_1278_cov_32.0638" in mate_tigs)
+	mate_tigs = get_contigs_of_mates("EDGE_1244_length_5010_cov_35.8545", bamfile, G)
+	assert_true("EDGE_1243_length_1496_cov_78.6919" in mate_tigs)
+	assert_true("EDGE_676_length_1278_cov_32.0638" in mate_tigs)
 
 
 def test_is_good_cyc():

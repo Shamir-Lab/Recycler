@@ -18,7 +18,7 @@ def parse_user_input():
     parser.add_argument('-m', '--max_CV',
      help='coefficient of variation used for pre-selection '+
      '[default: 0.50, higher--> less restrictive]; Note: not a requisite for selection',
-      required=False, default=1./2, type=float
+      required=False, default=1./4, type=float
       )
     parser.add_argument('-b','--bam', 
         help='BAM file resulting from aligning reads to contigs file, filtering for best matches', 
@@ -69,7 +69,7 @@ STD_COV = np.std(cov_vals)
 # set thresholds for max. CV, min
 # path coverage for allowing cross mappings 
 if ISO:
-    thresh = MED_COV + 2*STD_COV
+    thresh = np.percentile(cov_vals, 95)
     # max_CV = 1./2
 else:
     thresh = np.percentile(cov_vals, 75)
@@ -162,13 +162,14 @@ for c in comps:
                 print curr_path
                 non_self_loops.add(get_unoriented_sorted_str(curr_path))
                 name = get_spades_type_name(path_count, curr_path, SEQS, COMP)
-                covs = [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
+                # covs = [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
+                covs = get_path_covs(curr_path,COMP)
                 print "before", covs
                 f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs) 
                     + "\n" + str([get_num_from_spades_name(p) for p in curr_path]) + "\n")
                 update_path_coverage_vals(curr_path, COMP, SEQS)
                 path_count += 1
-                print "after", [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
+                print "after", get_path_covs(curr_path,COMP)
                 final_paths_dict[name] = curr_path
 
             # recalculate paths on the component

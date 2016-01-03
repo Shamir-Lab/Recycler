@@ -172,7 +172,8 @@ def get_path_covs(path,G):
 
 
 def get_path_mean_std(path, G, seqs, max_k_val=55):
-    covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
+    # covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
+    covs = get_path_covs(path,G)
     wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])
     tot_len = len(get_seq_from_path(path, seqs, cycle=True))
     wgts = np.multiply(wgts, 1./tot_len)
@@ -182,7 +183,8 @@ def get_path_mean_std(path, G, seqs, max_k_val=55):
 
 def update_path_coverage_vals(path, G, seqs):
     mean, _ = get_path_mean_std(path, G, seqs)
-    covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
+    # covs = np.array([get_cov_from_spades_name_and_graph(n,G) for n in path])
+    covs = get_path_covs(path,G)
     new_covs = covs - mean
     for i in range(len(path)):
         if new_covs[i] > 0:
