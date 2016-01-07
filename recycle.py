@@ -28,6 +28,10 @@ def parse_user_input():
         help='True or False value reflecting whether data sequenced was an isolated strain',
         required=False, type=bool, default=False
         )
+    parser.add_argument('-k','--max_k', 
+        help='integer reflecting maximum k value used by the assembler',
+        required=True, type=int, default=55
+        )
     return parser.parse_args()
 
 
@@ -41,6 +45,7 @@ def parse_user_input():
 args = parse_user_input()
 fastg = args.graph
 max_CV = args.max_CV
+max_k = args.max_k
 min_length = args.length
 fp = open(fastg, 'r')
 files_dir = os.path.dirname(fp.name)
@@ -133,7 +138,7 @@ for c in comps:
         # make tuples of (CV, path)
         path_tuples = []
         for p in paths:
-            path_tuples.append((get_wgtd_path_coverage_CV(p,COMP,SEQS), p))
+            path_tuples.append((get_wgtd_path_coverage_CV(p,COMP,SEQS,max_k_val=max_k), p))
         
         # sort in ascending CV order
         path_tuples.sort(key=lambda path: path[0]) 
@@ -141,22 +146,21 @@ for c in comps:
         curr_path = path_tuples[0][1]
         
         if get_unoriented_sorted_str(curr_path) not in non_self_loops:
+            path_mean, _ = get_path_mean_std(curr_path, G, SEQS, max_k_val=max_k)
 
             ## only report to file if long enough and good
-            path_mean, _ = get_path_mean_std(curr_path, G, SEQS)
-
             ## first good case - paired end reads on non-repeat nodes map on cycle
             ## typical or low coverage level
             ## second good case - high coverage (pairs may map outside due to high chimericism), 
             ## near constant coverage level
             if (   
-                len(get_seq_from_path(curr_path, SEQS))>=min_length \
+                len(get_seq_from_path(curr_path, SEQS, max_k_val=max_k))>=min_length \
                 and is_good_cyc(curr_path,G,bamfile) and \
-                get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= (max_CV/len(curr_path))   
+                get_wgtd_path_coverage_CV(curr_path,COMP,SEQS,max_k_val=max_k) <= (max_CV/len(curr_path))   
                 ) or \
             (   
-                len(get_seq_from_path(curr_path, SEQS))>=min_length and (path_mean > thresh) \
-                and get_wgtd_path_coverage_CV(curr_path,COMP,SEQS) <= (max_CV/len(curr_path))   
+                len(get_seq_from_path(curr_path, SEQS, max_k_val=max_k))>=min_length and (path_mean > thresh) \
+                and get_wgtd_path_coverage_CV(curr_path,COMP,SEQS,max_k_val=max_k) <= (max_CV/len(curr_path))   
                 ):
                 print curr_path
                 non_self_loops.add(get_unoriented_sorted_str(curr_path))
@@ -185,7 +189,7 @@ print "==================final_paths identities after updates: ================"
 
 # write out sequences to fasta
 for p in final_paths_dict.keys():
-    seq = get_seq_from_path(final_paths_dict[p], SEQS)
+    seq = get_seq_from_path(final_paths_dict[p], SEQS, max_k_val=max_k)
     print final_paths_dict[p]
     print ""
     if len(seq)>=min_length:

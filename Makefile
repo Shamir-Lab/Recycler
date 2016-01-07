@@ -17,7 +17,8 @@ tests:
 all: assemble index_and_map filter_to_primary sort_and_index recycle clean
 
 assemble:
-	$(SPADES_DIR)/spades.py -t $(NUM_THREADS) --only-assembler -k 21,33,55 -1 $(READS_DIR)/$(READ_F1) -2 $(READS_DIR)/$(READ_F2) -o $(ASSEMBLY_DIR) 
+	# $(SPADES_DIR)/spades.py -t $(NUM_THREADS) --only-assembler -k 21,33,55 -1 $(READS_DIR)/$(READ_F1) -2 $(READS_DIR)/$(READ_F2) -o $(ASSEMBLY_DIR) 
+	$(SPADES_DIR)/spades.py -t $(NUM_THREADS) -1 $(READS_DIR)/$(READ_F1) -2 $(READS_DIR)/$(READ_F2) -o $(ASSEMBLY_DIR) 
 	python make_fasta_from_fastg.py -g $(ASSEMBLY_DIR)/assembly_graph.fastg
 
 index_and_map: $(ASSEMBLY_DIR)/assembly_graph.nodes.fasta
