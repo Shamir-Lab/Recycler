@@ -144,7 +144,8 @@ for c in comps:
         path_tuples.sort(key=lambda path: path[0]) 
         
         curr_path = path_tuples[0][1]
-        
+        # print paths
+        # print curr_path
         if get_unoriented_sorted_str(curr_path) not in non_self_loops:
             path_mean, _ = get_path_mean_std(curr_path, G, SEQS, max_k_val=max_k)
 
