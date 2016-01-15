@@ -23,6 +23,11 @@ Recycler requires the following packages be installed:
 * [PySAM](https://github.com/pysam-developers/pysam)
 * [nose](https://nose.readthedocs.org/en/latest/)
 
+Recommended for generating inputs (as used during testing):
+* [BWA 0.7.5+](https://github.com/lh3/bwa)
+* [samtools 0.1.19+](https://github.com/samtools/samtools)
+* [SPAdes 3.6.2+](http://bioinf.spbau.ru/en/spades)
+
 # Detailed usage
 
 python recycle.py -g GRAPH -k MAX_K -b BAM [-l LENGTH] [-m MAX_CV] [-i ISO]
