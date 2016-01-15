@@ -20,15 +20,15 @@ def parse_user_input():
      '[default: 0.5, higher--> less restrictive]; Note: not a requisite for selection',
       required=False, default=1./2, type=float
       )
-    parser.add_argument('-b','--bam', 
-        help='BAM file resulting from aligning reads to contigs file, filtering for best matches', 
+    parser.add_argument('-b','--bam',
+        help='BAM file resulting from aligning reads to contigs file, filtering for best matches',
         required=True, type=str
         )
-    parser.add_argument('-i','--iso', 
+    parser.add_argument('-i','--iso',
         help='True or False value reflecting whether data sequenced was an isolated strain',
         required=False, type=bool, default=False
         )
-    parser.add_argument('-k','--max_k', 
+    parser.add_argument('-k','--max_k',
         help='integer reflecting maximum k value used by the assembler',
         required=True, type=int, default=55
         )
@@ -54,7 +54,7 @@ files_dir = os.path.dirname(fp.name)
 (root,ext) = os.path.splitext(fp.name)
 fasta_ofile = root + ext.replace(".fastg", ".cycs.fasta")
 f_cycs_fasta = open(fasta_ofile, 'w')
-# output 2 - file containing path name (corr. to fasta), 
+# output 2 - file containing path name (corr. to fasta),
 # path, coverage levels when path is added
 cycs_ofile = root + ext.replace(".fastg", ".cycs.paths_w_cov.txt")
 f_cyc_paths = open(cycs_ofile, 'w')
@@ -72,7 +72,7 @@ cov_vals = [get_cov_from_spades_name(n) for n in G.nodes()]
 MED_COV = np.median(cov_vals)
 STD_COV = np.std(cov_vals)
 # set thresholds for max. CV, min
-# path coverage for allowing cross mappings 
+# path coverage for allowing cross mappings
 if ISO:
     thresh = np.percentile(cov_vals, 95)
 else:
@@ -89,7 +89,7 @@ VISITED_NODES = set([]) # used to avoid problems due to RC nodes we may have rem
 final_paths_dict = {}
 
 for nd in long_self_loops:
-    name = get_spades_type_name(path_count, nd, 
+    name = get_spades_type_name(path_count, nd,
         SEQS, G, get_cov_from_spades_name(nd[0]))
     final_paths_dict[name] = nd
     path_count += 1
@@ -115,10 +115,10 @@ for c in comps:
 
     # initialize shortest path set considered
     paths = enum_high_mass_shortest_paths(COMP)
-    
-    # peeling - iterate until no change in path set from 
+
+    # peeling - iterate until no change in path set from
     # one iteration to next
- 
+
     last_path_count = 0
     last_node_count = 0
     # continue as long as you either removed a low mass path
@@ -132,17 +132,17 @@ for c in comps:
         if(len(paths)==0): break
 
         # using initial set of paths or set from last iteration
-        # sort the paths by CV and test the lowest CV path for removal 
+        # sort the paths by CV and test the lowest CV path for removal
         # need to use lambda because get_cov needs 2 parameters
-        
+
         # make tuples of (CV, path)
         path_tuples = []
         for p in paths:
             path_tuples.append((get_wgtd_path_coverage_CV(p,COMP,SEQS,max_k_val=max_k), p))
-        
+
         # sort in ascending CV order
-        path_tuples.sort(key=lambda path: path[0]) 
-        
+        path_tuples.sort(key=lambda path: path[0])
+
         curr_path = path_tuples[0][1]
         # print paths
         # print curr_path
@@ -152,16 +152,16 @@ for c in comps:
             ## only report to file if long enough and good
             ## first good case - paired end reads on non-repeat nodes map on cycle
             ## typical or low coverage level
-            ## second good case - high coverage (pairs may map outside due to high chimericism), 
+            ## second good case - high coverage (pairs may map outside due to high chimericism),
             ## near constant coverage level
-            if (   
+            if (
                 len(get_seq_from_path(curr_path, SEQS, max_k_val=max_k))>=min_length \
                 and is_good_cyc(curr_path,G,bamfile) and \
-                get_wgtd_path_coverage_CV(curr_path,COMP,SEQS,max_k_val=max_k) <= (max_CV/len(curr_path))   
+                get_wgtd_path_coverage_CV(curr_path,COMP,SEQS,max_k_val=max_k) <= (max_CV/len(curr_path))
                 ) or \
-            (   
+            (
                 len(get_seq_from_path(curr_path, SEQS, max_k_val=max_k))>=min_length and (path_mean > thresh) \
-                and get_wgtd_path_coverage_CV(curr_path,COMP,SEQS,max_k_val=max_k) <= (max_CV/len(curr_path))   
+                and get_wgtd_path_coverage_CV(curr_path,COMP,SEQS,max_k_val=max_k) <= (max_CV/len(curr_path))
                 ):
                 print curr_path
                 non_self_loops.add(get_unoriented_sorted_str(curr_path))
@@ -169,7 +169,7 @@ for c in comps:
                 # covs = [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
                 covs = get_path_covs(curr_path,COMP)
                 print "before", covs
-                f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs) 
+                f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs)
                     + "\n" + str([get_num_from_spades_name(p) for p in curr_path]) + "\n")
                 update_path_coverage_vals(curr_path, COMP, SEQS)
                 path_count += 1
@@ -178,7 +178,7 @@ for c in comps:
 
             # recalculate paths on the component
             print len(COMP.nodes()), " nodes remain in component\n"
-            
+
             paths = enum_high_mass_shortest_paths(COMP,non_self_loops)
     rc_nodes = [rc_node(n) for n in COMP.nodes()]
     VISITED_NODES.update(COMP.nodes())
@@ -194,5 +194,4 @@ for p in final_paths_dict.keys():
     print final_paths_dict[p]
     print ""
     if len(seq)>=min_length:
-        f_cycs_fasta.write(">" + p + "\n" + seq + "\n")    
-
+        f_cycs_fasta.write(">" + p + "\n" + seq + "\n")
