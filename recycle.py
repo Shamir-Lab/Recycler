@@ -5,32 +5,31 @@ from recycle.utils import *
 def parse_user_input():
     parser = argparse.ArgumentParser(
         description=
-        'recycle extracts cycles likely to be plasmids from metagenome and genome assembly graphs'
+        'Recycler extracts likely plasmids (and other circular DNA elements) from de novo assembly graphs'
         )
     parser.add_argument('-g','--graph',
-     help='(spades 3.50+) FASTG file to process [recommended: before_rr.fastg]',
+     help='(spades 3.50+) assembly graph FASTG file to process; recommended for spades 3.5: before_rr.fastg, for spades 3.6+:assembly_graph.fastg',
      required=True, type=str
      )
+    parser.add_argument('-k','--max_k', 
+        help='integer reflecting maximum k value used by the assembler',
+        required=True, type=int, default=55
+        )
+    parser.add_argument('-b','--bam', 
+        help='BAM file resulting from aligning reads to contigs file, filtering for best matches', 
+        required=True, type=str
+        )
     parser.add_argument('-l', '--length',
      help='minimum length required for reporting [default: 1000]',
      required=False, type=int, default=1000
      )
     parser.add_argument('-m', '--max_CV',
-     help='coefficient of variation used for pre-selection '+
-     '[default: 0.5, higher--> less restrictive]; Note: not a requisite for selection',
+     help='coefficient of variation used for pre-selection [default: 0.5, higher--> less restrictive]',
       required=False, default=1./2, type=float
       )
-    parser.add_argument('-b','--bam',
-        help='BAM file resulting from aligning reads to contigs file, filtering for best matches',
-        required=True, type=str
-        )
-    parser.add_argument('-i','--iso',
+    parser.add_argument('-i','--iso', 
         help='True or False value reflecting whether data sequenced was an isolated strain',
         required=False, type=bool, default=False
-        )
-    parser.add_argument('-k','--max_k',
-        help='integer reflecting maximum k value used by the assembler',
-        required=True, type=int, default=55
         )
     return parser.parse_args()
 
