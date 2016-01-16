@@ -74,7 +74,7 @@ following these steps, we only need the files reads_pe_primary.sort.bam and read
 # Outputs:
 
 1. \<prefix\>.cycs.fasta  - a fasta formatted file of predicted plasmids
-2. \<prefix\>.cycs.paths_w_cov.txt - a text file containing information about each predicted plasmid.
+2. \<prefix\>.cycs.paths_w_cov.txt - a text file containing information about plasmids composed of multiple contigs.
 
 The format for the second file is:
 * *\<plasmid name\>* - e.g., RNODE_5_length_42666_cov_19.93685
