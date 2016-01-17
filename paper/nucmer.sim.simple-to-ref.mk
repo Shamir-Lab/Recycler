@@ -40,7 +40,7 @@ $(INPUT).simple_cycs.fasta: $(INPUT).fasta
 
 # 1) concat output cycles to self:
 $(INPUT).simple_cycs.dbl.fasta: $(INPUT).simple_cycs.fasta
-	python ~/recycle/concat_seq_to_self.py -i $^
+	python ~/recycle/paper/concat_seq_to_self.py -i $^
 
 # 2) run nucmer
 $(INPUT).nucmer: $(INPUT).simple_cycs.dbl.fasta

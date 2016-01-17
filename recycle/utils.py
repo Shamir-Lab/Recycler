@@ -118,11 +118,6 @@ def update_node_coverage(G, node, new_cov):
         G.add_node(node, cov=new_cov)
         G.add_node(rc_node(node), cov=new_cov)
 
-def remove_isolated_nodes(G):
-    for n in G.nodes():
-        if G.in_degree(n)==0 and G.out_degree(n)==0:
-            update_node_coverage(G,n,0)
-
 def get_spades_base_mass(G, name):
     length = get_length_from_spades_name(name)
     coverage = get_cov_from_spades_name_and_graph(name,G)

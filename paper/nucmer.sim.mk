@@ -36,7 +36,7 @@ all:  $(INPUT).cycs.dbl.fasta $(INPUT).nucmer.delta $(INPUT).nucmer$(CV).summary
 
 # 1) concat output cycles to self:
 $(INPUT).cycs.dbl.fasta: $(INPUT).cycs.fasta
-	python ~/recycle/concat_seq_to_self.py -i $(INPUT).cycs.fasta -m 0
+	python ~/recycle/paper/concat_seq_to_self.py -i $(INPUT).cycs.fasta -m 0
 
 # 2) run nucmer
 $(INPUT).nucmer.delta: $(INPUT).cycs.dbl.fasta
@@ -56,7 +56,7 @@ $(INPUT).nucmer$(CV).summary $(INPUT).hit_nodes$(CV).txt:  $(INPUT).nucmer.delta
 
 # 4) tally hits by different ranges/properties
 $(INPUT).$(CV).tally: $(INPUT).cycs.fasta $(INPUT).cycs.paths_w_cov.txt $(INPUT).hit_nodes$(CV).txt
-	python ~/recycle/tally_hits.py -p $(INPUT) -n $(INPUT).hit_nodes$(CV).txt > $@
+	python ~/recycle/paper/tally_hits.py -p $(INPUT) -n $(INPUT).hit_nodes$(CV).txt > $@
 
 clean:
 	# rm -f $(INPUT).cycs.fasta

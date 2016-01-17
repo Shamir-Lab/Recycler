@@ -65,7 +65,7 @@ ISO = args.iso
 
 
 G = get_fastg_digraph(fastg)
-remove_isolated_nodes(G)
+G.remove_nodes_from(nx.isolates(G))
 
 cov_vals = [get_cov_from_spades_name(n) for n in G.nodes()]
 MED_COV = np.median(cov_vals)
