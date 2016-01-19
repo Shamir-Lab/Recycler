@@ -62,17 +62,20 @@ min_length = args.min_length
 cycs = set([])
 fp = open(fastg_name, 'r')
 
-simple_cycs_ofile = fp.name.replace(".fastg", ".simple_cycs.fasta")
+simple_cycs_ofile = fp.name.replace(".fastg", ".simple.cycs.fasta")
 f_cycs_out = open(simple_cycs_ofile, 'w')
-filt_graph_ofile = fp.name.replace(".fastg", ".simple_cycs_filtered.fastg")
+filt_graph_ofile = fp.name.replace(".fastg", ".simple.cycs_filtered.fastg")
 f_graph_out = open(filt_graph_ofile, 'w')
 
 
 #### potential issue: output fastg 
 #### may contain links to nodes that have been removed
 #### may be potential hazard downstream
-
+cnt = 0
 for name,seq,qual in readfq(fp):
+    cnt+=1
+    if cnt%2!=1:
+        continue
     orig_name = name
     name = re.sub('[:,]'," ", name[:-1])
     name_parts = name.split(" ")

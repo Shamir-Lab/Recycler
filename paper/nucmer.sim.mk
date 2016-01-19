@@ -1,14 +1,14 @@
 # creates a report on the number of plasmids reported
 # and their alignment relative to some reference
 REF_CNT = 100
-CV = 0.25
+CV = 0.5
 PARENT_DIR = /home/nasheran/rozovr/recycle_paper_data
 INPUT_DIR = $(PARENT_DIR)/ref_$(REF_CNT)
 # TWO_STEP_ASSEM = 0
 # REPEAT_RES_1 = 0
 # REPEAT_RES_2 = 0
 REF = $(PARENT_DIR)/plasmids_sim_ref_$(REF_CNT).cln.fasta
-INPUT = $(INPUT_DIR)/assembly_graph
+INPUT = $(INPUT_DIR)/contigs
 # ifeq ($(REPEAT_RES_1),0)
 # 	INPUT1 = before_rr
 # else
@@ -36,7 +36,7 @@ all:  $(INPUT).cycs.dbl.fasta $(INPUT).nucmer.delta $(INPUT).nucmer$(CV).summary
 
 # 1) concat output cycles to self:
 $(INPUT).cycs.dbl.fasta: $(INPUT).cycs.fasta
-	python ~/recycle/paper/concat_seq_to_self.py -i $(INPUT).cycs.fasta -m 0
+	python ~/recycle/paper/concat_seq_to_self.py -i $(INPUT).cycs.fasta -m 55
 
 # 2) run nucmer
 $(INPUT).nucmer.delta: $(INPUT).cycs.dbl.fasta

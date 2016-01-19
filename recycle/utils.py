@@ -80,11 +80,9 @@ def get_fastg_seqs_dict(fastg_name, G):
     """ 
     fp = open(fastg_name, 'r')
     seqs = {}
-    # nodes = G.nodes()
     for name,seq,qual in readfq(fp):
         name_parts = re.sub('[:,]'," ", name[:-1]).split()
         node = name_parts[0]
-        # if node in nodes:
         seqs[node] = seq
     return seqs
 

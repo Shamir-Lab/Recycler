@@ -1,6 +1,8 @@
+import argparse, sys
+sys.path.insert(0, '../recycle/')
 from recycle.utils import *
-import argparse
 import numpy as np
+
 
 def count_property_range_hits(prop, node_dict, hits):
 	""" picks which values to use in tuples based on property
