@@ -1,3 +1,6 @@
+
+#!/usr/bin/env python
+
 import argparse, os
 from recycle.utils import *
 
