@@ -1,3 +1,6 @@
+# Getting Recycler
+You can download Recycler [here](https://github.com/Shamir-Lab/Recycler/releases/download/Recycler-v0.6/Recycler-0.6.zip) or clone it via the link below. In case you download the zip, unzip the file before following the instructions below (ignoring the 'git clone' line)
+
 # Quick start
 
 Assuming we have prepared a filtered BAM file (aln-pe.bam) prepared as described [below](#bam-prep) and an isolate assembly graph (e.g., assembly_graph.fastg from [SPAdes 3.6+](http://bioinf.spbau.ru/en/spades)), and that 55 was the maximum k-mer length used by the assembler, 
