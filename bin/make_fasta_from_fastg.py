@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import re, argparse, os
 from recycle.utils import readfq
 
