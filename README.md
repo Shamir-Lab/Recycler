@@ -1,3 +1,6 @@
+# Getting Recycler
+You can download Recycler [here](https://github.com/Shamir-Lab/Recycler/releases/download/Recycler-v0.6/Recycler-0.6.zip) or clone it via the link below. In case you download the zip, unzip the file before following the instructions below (ignoring the 'git clone' line)
+
 # Quick start
 
 Assuming we have prepared a filtered BAM file (aln-pe.bam) prepared as described [below](#bam-prep) and an isolate assembly graph (e.g., assembly_graph.fastg from [SPAdes 3.6+](http://bioinf.spbau.ru/en/spades)), and that 55 was the maximum k-mer length used by the assembler, 
@@ -87,3 +90,5 @@ The format for the second file is:
 * *\<coverage levels of nodes at the time they are removed\>* - e.g., \[19.8677, 34.7286\]
 * *\<node numbers in the original graph making up this cycle\>* - e.g., \[2801, 2387\]. This can be useful for visualizing the path in tools like [Bandage](https://rrwick.github.io/Bandage/)
 
+# Compatibiltiy
+We are aware other tools can be used to generate the inputs to Recycler - e.g., Bowtie2 for BAM files and Megahit for FASTGs, - however, we have not tested them with Recycler. We welcome user feedback regarding this point, and compatibilty issues that arise may be posted to the issues tracker above! 
