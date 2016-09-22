@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse, os
-from recycle.utils import *
+from recycle import *
 
 
 def parse_user_input():
