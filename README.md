@@ -1,6 +1,13 @@
 # Getting Recycler
 You can download Recycler [here](https://github.com/Shamir-Lab/Recycler/releases/download/Recycler-v0.6/Recycler-0.6.zip) or clone it via the link below. In case you download the zip, unzip the file before following the instructions below (ignoring the 'git clone' line)
 
+# Installation
+To install Recycler and scripts follow the following instructions.
+
+    git clone https://github.com/rozovr/Recycler.git
+    python setup.py install
+
+
 # Quick start
 
 Assuming we have prepared a filtered BAM file (aln-pe.bam) prepared as described [below](#bam-prep) and an isolate assembly graph (e.g., assembly_graph.fastg from [SPAdes 3.6+](http://bioinf.spbau.ru/en/spades)), and that 55 was the maximum k-mer length used by the assembler, 
@@ -28,13 +35,6 @@ Recommended for generating inputs (as used during testing):
 * [BWA 0.7.5+](https://github.com/lh3/bwa)
 * [samtools 0.1.19+](https://github.com/samtools/samtools)
 * [SPAdes 3.6.2+](http://bioinf.spbau.ru/en/spades)
-
-# Installation
-To install Recycler and scripts follow the following instructions. 
- 
-    git clone https://github.com/rozovr/Recycler.git
-    python setup.py install
-
 
 # Detailed usage
 
