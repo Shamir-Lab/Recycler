@@ -2,7 +2,7 @@
 
 import argparse, os
 from recycle import *
-
+import pysam
 
 def parse_user_input():
     parser = argparse.ArgumentParser(
