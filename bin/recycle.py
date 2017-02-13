@@ -1,9 +1,8 @@
-
 #!/usr/bin/env python
 
 import argparse, os
-from recycle.utils import *
-
+from recycle import *
+import pysam
 
 def parse_user_input():
     parser = argparse.ArgumentParser(

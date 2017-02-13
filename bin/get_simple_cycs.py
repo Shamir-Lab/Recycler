@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # gets simple (single contig) cycles from 
 # (usually plasmid) metagenomes, leaves rest of 
 # graph as is

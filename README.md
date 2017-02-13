@@ -1,13 +1,18 @@
 # Getting Recycler
 You can download Recycler [here](https://github.com/Shamir-Lab/Recycler/releases/download/Recycler-v0.6/Recycler-0.6.zip) or clone it via the link below. In case you download the zip, unzip the file before following the instructions below (ignoring the 'git clone' line)
 
+# Installation
+To install Recycler and scripts follow the following instructions.
+
+    git clone https://github.com/rozovr/Recycler.git
+    python setup.py install
+
+
 # Quick start
 
 Assuming we have prepared a filtered BAM file (aln-pe.bam) prepared as described [below](#bam-prep) and an isolate assembly graph (e.g., assembly_graph.fastg from [SPAdes 3.6+](http://bioinf.spbau.ru/en/spades)), and that 55 was the maximum k-mer length used by the assembler, 
 
-    git clone https://github.com/rozovr/Recycler.git
-    cd Recycler
-    python recycle.py -g assembly_graph.fastg -k 55 -b aln-pe.bam -i True
+    recycle.py -g assembly_graph.fastg -k 55 -b aln-pe.bam -i True
     
 For metagenome/plasmidome assemblies, we remove the final ("-i") parameter, which has a default False value.
     
@@ -33,7 +38,7 @@ Recommended for generating inputs (as used during testing):
 
 # Detailed usage
 
-python recycle.py -g GRAPH -k MAX_K -b BAM [-l LENGTH] [-m MAX_CV] [-i ISO]
+recycle.py -g GRAPH -k MAX_K -b BAM [-l LENGTH] [-m MAX_CV] [-i ISO]
 
 ### required arguments:
     
@@ -60,7 +65,7 @@ python recycle.py -g GRAPH -k MAX_K -b BAM [-l LENGTH] [-m MAX_CV] [-i ISO]
 
 Recycler uses paired-end alignments of the reads originally assembled to the output assembly graph to filter and select amongst candidate circular sequences. In order to do so, it requires as input a BAM file containing the set of best alignment hits for each read pair. We recommend the following steps (tested on BWA 0.7.5 and samtools 1.19) to prepare the BAM file:
 
-    python make_fasta_from_fastg.py -g assembly_graph.fastg
+    make_fasta_from_fastg.py -g assembly_graph.fastg
     
     bwa index assembly_graph.nodes.fasta
     
