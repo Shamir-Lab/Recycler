@@ -1,3 +1,5 @@
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/recycler/README.html)
+
 # Getting Recycler
 You can download Recycler [here](https://github.com/Shamir-Lab/Recycler/releases/download/v0.61/Recycler-v0.61.zip) or clone it via the link below. In case you download the zip, unzip the file before following the instructions below (ignoring the 'git clone' line)
 
