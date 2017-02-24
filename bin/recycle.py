@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import argparse, os
-from recycle import *
+from recyclelib import *
 import pysam
 
 def parse_user_input():
