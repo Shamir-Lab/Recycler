@@ -1,2 +1,4 @@
 test/*bam
 test/*bam.bai
+*.pyc
+*.directory
