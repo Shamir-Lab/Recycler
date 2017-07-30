@@ -63,20 +63,23 @@ recycle.py -g GRAPH -k MAX_K -b BAM [-l LENGTH] [-m MAX_CV] [-i ISO]
     -i ISO
     True or False value reflecting whether data sequenced
     was an isolated strain 
+    -o OUTPUT_DIR
+    provide a specific output directory by default results will
+    be written to the directory the FASTG file is currently in.
 
 # <a name="bam-prep">Preparing the BAM input:
 
 Recycler uses paired-end alignments of the reads originally assembled to the output assembly graph to filter and select amongst candidate circular sequences. In order to do so, it requires as input a BAM file containing the set of best alignment hits for each read pair. We recommend the following steps (tested on BWA 0.7.5 and samtools 1.19) to prepare the BAM file:
 
-    make_fasta_from_fastg.py -g assembly_graph.fastg
+    make_fasta_from_fastg.py -g assembly_graph.fastg [-o assembly_graph.nodes.fasta]
     
     bwa index assembly_graph.nodes.fasta
     
-    bwa mem  assembly_graph.nodes.fasta R1.fastq.gz R2.fastq.gz | samtools view -buS - > reads_pe.bam
+    bwa mem assembly_graph.nodes.fasta R1.fastq.gz R2.fastq.gz | samtools view -buS - > reads_pe.bam
     
     samtools view -bF 0x0800 reads_pe.bam > reads_pe_primary.bam
     
-    samtools sort reads_pe_primary.bam reads_pe_primary.sort
+    samtools sort reads_pe_primary.bam > reads_pe_primary.sort.bam
     
     samtools index reads_pe_primary.sort.bam
 
