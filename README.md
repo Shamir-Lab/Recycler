@@ -41,7 +41,7 @@ Recommended for generating inputs (as used during testing):
 
 # Detailed usage
 
-recycle.py -g GRAPH -k MAX_K -b BAM [-l LENGTH] [-m MAX_CV] [-i ISO]
+recycle.py -g GRAPH -k MAX_K -b BAM [-l LENGTH] [-m MAX_CV] [-i ISO] [-o OUTPUT_DIR]
 
 ### required arguments:
     

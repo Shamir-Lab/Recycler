@@ -58,6 +58,8 @@ if __name__ == '__main__':
 
     # output 1 - fasta of sequences
     if args.output_dir:
+        if not os.path.exists(args.output_dir):
+            os.mkdir(args.output_dir)
         basename = os.path.basename(fp.name)
         out_fp = os.path.join(args.output_dir, basename)
         (root, ext) = os.path.splitext(out_fp)
