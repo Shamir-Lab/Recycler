@@ -92,7 +92,7 @@ if __name__ == '__main__':
     else:
         thresh = np.percentile(cov_vals, 75)
 
-    print MED_COV, STD_COV, thresh
+    print(MED_COV, STD_COV, thresh)
     path_count = 0
     # gets set of long simple loops, removes short
     # simple loops from graph
