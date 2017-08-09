@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 import networkx as nx
 import re, pysam
@@ -144,6 +145,7 @@ def get_seq_from_path(path, seqs, max_k_val=55, cycle=True):
 def get_wgtd_path_coverage_CV(path, G, seqs, max_k_val=55):
     if len(path)< 2: return 0
     mean, std = get_path_mean_std(path, G, seqs, max_k_val)
+    if mean<=0: return 0
     return std/mean
 
 def get_node_cnts_hist(path):
@@ -170,6 +172,7 @@ def get_path_mean_std(path, G, seqs, max_k_val=55):
     covs = get_path_covs(path,G)
     wgts = np.array([(get_length_from_spades_name(n)-max_k_val) for n in path])
     tot_len = len(get_seq_from_path(path, seqs, cycle=True))
+    if tot_len<=0: return (0,0)
     wgts = np.multiply(wgts, 1./tot_len)
     mean = np.average(covs, weights = wgts)
     std = np.sqrt(np.dot(wgts,(covs-mean)**2))
