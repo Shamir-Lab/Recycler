@@ -92,7 +92,7 @@ if __name__ == '__main__':
     else:
         thresh = np.percentile(cov_vals, 75)
 
-    print MED_COV, STD_COV, thresh
+    print(MED_COV, STD_COV, thresh)
     path_count = 0
     # gets set of long simple loops, removes short
     # simple loops from graph
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     comps = nx.strongly_connected_component_subgraphs(G)
     COMP = nx.DiGraph()
     redundant = False
-    print "================== path, coverage levels when added ===================="
+    print("================== path, coverage levels when added ====================")
 
     ###################################
     # iterate through SCCs looking for cycles
@@ -177,21 +177,21 @@ if __name__ == '__main__':
                     len(get_seq_from_path(curr_path, SEQS, max_k_val=max_k))>=min_length and (path_mean > thresh) \
                     and get_wgtd_path_coverage_CV(curr_path,COMP,SEQS,max_k_val=max_k) <= (max_CV/len(curr_path))
                     ):
-                    print curr_path
+                    print(curr_path)
                     non_self_loops.add(get_unoriented_sorted_str(curr_path))
                     name = get_spades_type_name(path_count, curr_path, SEQS, COMP)
                     # covs = [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
                     covs = get_path_covs(curr_path,COMP)
-                    print "before", covs
+                    print("before", covs)
                     f_cyc_paths.write(name + "\n" +str(curr_path)+ "\n" + str(covs)
                         + "\n" + str([get_num_from_spades_name(p) for p in curr_path]) + "\n")
                     update_path_coverage_vals(curr_path, COMP, SEQS)
                     path_count += 1
-                    print "after", get_path_covs(curr_path,COMP)
+                    print("after", get_path_covs(curr_path,COMP))
                     final_paths_dict[name] = curr_path
 
                 # recalculate paths on the component
-                print len(COMP.nodes()), " nodes remain in component\n"
+                print(len(COMP.nodes()), " nodes remain in component\n")
 
                 paths = enum_high_mass_shortest_paths(COMP,non_self_loops)
         rc_nodes = [rc_node(n) for n in COMP.nodes()]
@@ -200,12 +200,12 @@ if __name__ == '__main__':
 
     # done peeling
     # print final paths to screen
-    print "==================final_paths identities after updates: ================"
+    print("==================final_paths identities after updates: ================")
 
     # write out sequences to fasta
     for p in final_paths_dict.keys():
         seq = get_seq_from_path(final_paths_dict[p], SEQS, max_k_val=max_k)
-        print final_paths_dict[p]
-        print ""
+        print(final_paths_dict[p])
+        print(" ")
         if len(seq)>=min_length:
             f_cycs_fasta.write(">" + p + "\n" + seq + "\n")
