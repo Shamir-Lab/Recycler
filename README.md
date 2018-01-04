@@ -30,7 +30,7 @@ Recycler is implemented in Python, and has been tested only on Python 2.7+. We r
 Recycler requires the following packages be installed:
 
 * [NumPy](http://www.numpy.org/)
-* [NetworkX](http://networkx.github.io/)
+* [NetworkX](http://networkx.github.io/) (2.0+)
 * [PySAM](https://github.com/pysam-developers/pysam)
 * [nose](https://nose.readthedocs.org/en/latest/)
 

@@ -80,7 +80,7 @@ if __name__ == '__main__':
 
 
     G = get_fastg_digraph(fastg)
-    G.remove_nodes_from(nx.isolates(G))
+    G.remove_nodes_from(list(nx.isolates(G)))
 
     cov_vals = [get_cov_from_spades_name(n) for n in G.nodes()]
     MED_COV = np.median(cov_vals)
