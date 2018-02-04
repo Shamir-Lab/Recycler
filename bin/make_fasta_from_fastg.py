@@ -5,7 +5,7 @@ from recyclelib.utils import readfq
 def parse_user_input():
     parser = argparse.ArgumentParser(
         description=
-        'recycle extracts cycles likely to be plasmids from metagenome and genome assembly graphs'
+        'make_fasta_from_fastg converts fastg assembly graph to fasta format'
         )
     parser.add_argument('-g','--graph',
      help='(spades 3.50+) FASTG file to process [recommended: before_rr.fastg]',
@@ -19,13 +19,10 @@ def parse_user_input():
     return parser.parse_args()
 
 def parse_lines(fastg, ofile):
-    lines = []
     fp = open(fastg, 'r')
-    count = 0
     for name,seq,qual in readfq(fp):
-        count += 1
-        if count % 2 == 0: continue
         name = re.sub('[:,]'," ", name[:-1]).split(" ")[0]
+        if name[-1] == "'": continue # only need one of forward and reverse complement
         line = ">"+name+"\n"+seq+"\n"
         ofile.write(line)
 
