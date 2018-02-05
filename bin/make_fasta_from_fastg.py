@@ -20,9 +20,13 @@ def parse_user_input():
 
 def parse_lines(fastg, ofile):
     fp = open(fastg, 'r')
+    seen = set() ##
     for name,seq,qual in readfq(fp):
         name = re.sub('[:,]'," ", name[:-1]).split(" ")[0]
-        if name[-1] == "'": continue # only need one of forward and reverse complement
+        check_seen = name
+        if check_seen[-1] == "'": check_seen = check_seen[:-1]
+        if check_seen in seen: continue
+        else: seen.add(check_seen)
         line = ">"+name+"\n"+seq+"\n"
         ofile.write(line)
 
