@@ -1,7 +1,7 @@
 from nose.tools import *
-from recycle.utils import *
+from recyclelib.utils import *
 
-ROOT_DIR = "/specific/a/home/cc/cs/rozovr/recycle/"
+ROOT_DIR = "test/"
 TEST_PATH = ('EDGE_1148_length_2822_cov_34.1811',
 		'EDGE_71_length_961_cov_29.7759',
 		'EDGE_1243_length_1496_cov_78.6919',
@@ -24,7 +24,7 @@ TEST_REPEAT_PATH = ('EDGE_286_length_92_cov_109.162',
 
 def get_sample_graph_comp_seqs():
 	# load test graph
-	fastg = ROOT_DIR + "test/assembly_graph.fastg"
+	fastg = ROOT_DIR + "assembly_graph.fastg"
 	test_node = "EDGE_1243_length_1496_cov_78.6919"
 	G = get_fastg_digraph(fastg)
 	comps = nx.strongly_connected_component_subgraphs(G)
@@ -54,7 +54,7 @@ def test_spades_name_functions():
 
 
 def test_get_fastg_digraph():
-	fastg = ROOT_DIR + "test/assembly_graph.fastg"
+	fastg = ROOT_DIR + "assembly_graph.fastg"
 	G = get_fastg_digraph(fastg)
 	assert_equal(len(G.nodes()), 2*3331)
 	assert_equal(len(G.edges()), 2*905)
@@ -67,7 +67,7 @@ def test_coverage_funcs():
 	# AACCTGCGACCAATTGATTAAAAGTCAACTGCTCTACCAACTGAGCTAACGACCCA
 
 	# load sample graph, store initial sizes
-	fastg = ROOT_DIR + "test/assembly_graph.fastg"
+	fastg = ROOT_DIR + "assembly_graph.fastg"
 	G = get_fastg_digraph(fastg)
 	test_node = 'EDGE_184_length_56_cov_59'
 	test_node_rc = rc_node(test_node)
@@ -193,7 +193,7 @@ def test_get_non_repeat_nodes():
 
 def test_get_contigs_of_mates():
 	G,COMP,SEQS = get_sample_graph_comp_seqs()
-	bamfile = pysam.AlignmentFile("/home/nasheran/rozovr/recycle_paper_data/JJ1886_pe_primary.sort.bam", 'rb')
+	bamfile = pysam.AlignmentFile(ROOT_DIR+"test.sort.bam", 'rb')
 	# note mapped to positive nodes; thus only their names valid
 	# also, need to change labels starting with "EDGE_" to "NODE_"
 	mate_tigs = get_contigs_of_mates("EDGE_1244_length_5010_cov_35.8545", bamfile, G)
@@ -202,13 +202,14 @@ def test_get_contigs_of_mates():
 
 def test_is_good_cyc():
 	G,COMP,SEQS = get_sample_graph_comp_seqs()
-	bamfile = pysam.AlignmentFile("/home/nasheran/rozovr/recycle_paper_data/JJ1886_pe_primary.sort.bam", 'rb')
+	bamfile = pysam.AlignmentFile(ROOT_DIR+"test.sort.bam", 'rb')
+	mate_tigs = get_contigs_of_mates("EDGE_800_length_15304_cov_22.6688", bamfile, G)
 
 	assert_false(is_good_cyc(('EDGE_800_length_15304_cov_22.6688', "EDGE_801_length_279_cov_57.2411'"), G, bamfile))		
 	assert_true(is_good_cyc(TEST_PATH, G, bamfile))	
 
 def test_get_path_covs():
-	fastg = "/home/nasheran/rozovr/recycle_paper_data/E2022_assem/assembly_graph.fastg"
+	fastg = ROOT_DIR+"assembly_graph2.fastg"
 	G = get_fastg_digraph(fastg)
 	assert_equal(get_node_cnts_hist(TEST_REPEAT_PATH)['EDGE_286_length_92_cov_109.162'], 2)
 	assert_true(all(get_path_covs(TEST_REPEAT_PATH,G) == np.array([109.162/2, 54.6159, 90.6849, 45.5921, 109.162/2, 58.5435])))
