@@ -1,0 +1,11 @@
+@article {Rozov029926,
+	author = {Rozov, Roye and Brown Kav, Aya and Bogumil, David and Halperin, Eran and Mizrahi, Itzhak and Shamir, Ron},
+	title = {Recycler: an algorithm for detecting plasmids from de novo assembly graphs},
+	year = {2016},
+	doi = {10.1101/029926},
+	publisher = {Cold Spring Harbor Laboratory},
+	abstract = {Plasmids have important roles in antibiotic resistance and in affecting production of metabolites used in industrial and agricultural applications. However, their extraction through deep sequencing remains challenging, in spite of rapid drops in cost and throughput increases for sequencing. Here, we attempt to ameliorate this situation by introducing a new plasmid-specific assembly algorithm, leveraging assembly graphs provided by a conventional de novo assembler and alignments of paired-end reads to assembled graph nodes. We introduce the first tool for this task, called Recycler, and demonstrate its merits in comparison with extant approaches. We show that Recycler greatly increases the number of true plasmids recovered while remaining highly accurate. On simulated plasmidomes, Recycler recovered 5-14\% more true plasmids compared to extant methods, and overall precision of about 90\%. We validate these results on real data, by comparison against available reference sequences and quantifying annotation of predicted ORFs. All 12 of Recycler{\textquoteright}s outputs on isolate samples matched known plasmids or phages, and had alignments having at least 97\% identity over at least 99\% of the reported reference sequence lengths. For the two E. Coli strains examined, most known plasmid sequences were recovered, while in both cases additional plasmids only known to be present in different hosts were found. Recycler also generated plasmids in high agreement with known annotation on real plasmidome data. Moreover, 6 of 8 plasmids previously validated by PCR were completely recovered. Recycler is available at http://github.com/Shamir-Lab/Recycler},
+	URL = {https://academic.oup.com/bioinformatics/article/33/4/475/2623362},
+	eprint = {https://academic.oup.com/bioinformatics/article-pdf/33/4/475/10408120/btw651.pdf},
+	journal = {bioRxiv}
+}
