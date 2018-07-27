@@ -121,6 +121,7 @@ def update_node_coverage(G, node, new_cov):
 def get_spades_base_mass(G, name):
     length = get_length_from_spades_name(name)
     coverage = get_cov_from_spades_name_and_graph(name,G)
+    if coverage <= 0.0: coverage = 1.0/float(length) # ensure no divison by 0, consider more principled way to handle this
     return length * coverage
 
 def get_seq_from_path(path, seqs, max_k_val=55, cycle=True):
