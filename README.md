@@ -79,7 +79,7 @@ Recycler uses paired-end alignments of the reads originally assembled to the out
     
     samtools view -bF 0x0800 reads_pe.bam > reads_pe_primary.bam
     
-    samtools sort reads_pe_primary.bam > reads_pe_primary.sort.bam
+    samtools sort reads_pe_primary.bam reads_pe_primary.sort.bam
     
     samtools index reads_pe_primary.sort.bam
 
