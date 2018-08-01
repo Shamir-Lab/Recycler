@@ -104,7 +104,7 @@ if __name__ == '__main__':
 
     for nd in long_self_loops:
         name = get_spades_type_name(path_count, nd,
-            SEQS, G, get_cov_from_spades_name(nd[0]))
+            SEQS, max_k, G, get_cov_from_spades_name(nd[0]))
         final_paths_dict[name] = nd
         path_count += 1
 
@@ -179,7 +179,7 @@ if __name__ == '__main__':
                     ):
                     print(curr_path)
                     non_self_loops.add(get_unoriented_sorted_str(curr_path))
-                    name = get_spades_type_name(path_count, curr_path, SEQS, COMP)
+                    name = get_spades_type_name(path_count, curr_path, SEQS, max_k, COMP)
                     # covs = [get_cov_from_spades_name_and_graph(p,COMP) for p in curr_path]
                     covs = get_path_covs(curr_path,COMP)
                     print("before", covs)
