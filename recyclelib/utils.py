@@ -286,7 +286,7 @@ def get_non_repeat_nodes(G, path):
 
 
 def get_spades_type_name(count, path, seqs, max_k_val, G, cov=None):
-    path_len = len(get_seq_from_path(path,max_k_val,seqs))
+    path_len = len(get_seq_from_path(path,seqs,max_k_val))
     if cov==None:
         cov = get_total_path_mass(path,G)/float(path_len)
     info = ["RNODE", str(count+1), "length", str(path_len),
