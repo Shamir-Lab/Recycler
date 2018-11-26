@@ -23,10 +23,9 @@ def parse_lines(fastg, ofile):
     seen = set() ##
     for name,seq,qual in readfq(fp):
         name = re.sub('[:,]'," ", name[:-1]).split(" ")[0]
-        check_seen = name
-        if check_seen[-1] == "'": check_seen = check_seen[:-1]
-        if check_seen in seen: continue
-        else: seen.add(check_seen)
+        if name[-1] == "'": name = name[:-1]
+        if name in seen: continue
+        else: seen.add(name)
         line = ">"+name+"\n"+seq+"\n"
         ofile.write(line)
 
