@@ -322,7 +322,7 @@ def get_contigs_of_mates(node, bamfile, G):
         # see if nd reachable by node or vice-versa
         # try both flipping to rc and switching source and target    
         elif not any([nx.has_path(G, source_name, nd_name), nx.has_path(G, rc_node(source_name),nd_name), 
-          nx.has_path(G, nd_name, source_name), nx.has_path(G, nd_name, rc_node(source_name))]):
+          nx.has_path(G, nd_name, source_name), nx.has_path(G, rc_node(nd_name), source_name)]):
             to_remove.add(nd)
     mate_tigs -= to_remove
     # print "after removal", mate_tigs
