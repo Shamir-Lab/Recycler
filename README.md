@@ -6,7 +6,7 @@ You can download Recycler [here](https://github.com/Shamir-Lab/Recycler/releases
 # Installation
 To install Recycler and scripts follow the following instructions.
 
-    git clone https://github.com/rozovr/Recycler.git
+    git clone https://github.com/Shamir-Lab/Recycler.git
     cd Recycler
     python setup.py install --user
 
