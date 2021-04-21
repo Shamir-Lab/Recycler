@@ -37,7 +37,7 @@ Recycler requires the following packages be installed:
 Recommended for generating inputs (as used during testing):
 * [BWA 0.7.5+](https://github.com/lh3/bwa)
 * [samtools 0.1.19+](https://github.com/samtools/samtools)
-* [SPAdes 3.6.2+](http://bioinf.spbau.ru/en/spades)
+* [SPAdes 3.6.2+](http://cab.spbu.ru/software/spades/)
 
 # Detailed usage
 
